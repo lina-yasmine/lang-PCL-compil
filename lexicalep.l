@@ -6,8 +6,8 @@
 //#include"TS.h"
 
 int yylex();
-extern int nbr = 1;
-extern int nbrC = 1;
+int nbr = 1;
+extern int nbrC;
 %}
 
 Idf [a-zA-Z]([a-z0-9]){0,7}
@@ -43,15 +43,15 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 ":" {printf("sep : reconnu\n");nbrC += strlen(yytext); return deux_point;}
 "," {printf("sep , reconnu\n");nbrC += strlen(yytext); return vir;}
 "=" {printf("sep egale reconnu\n");nbrC += strlen(yytext); return egale;}
-"+" {printf("plus reconnue \n");nbrC += strlen(yytext);return plus ;}
-"-" {printf("moins reconnue \n"); nbrC += strlen(yytext); return moins ; }
-"*" {printf("etoile reconnue \n"); nbrC += strlen(yytext); return etoile ; }
-"/" {printf("div reconnue \n"); nbrC += strlen(yytext);return divi ;}
-"&&" {printf("et logique reconnue \n"); nbrC += strlen(yytext);return et ;}
-"||" {printf("ou logique reconnue \n"); nbrC += strlen(yytext);return ou ;}
-"!" {printf("negation reconnue \n"); nbrC += strlen(yytext);return negation ;}
-">" {printf("sup reconnue \n"); nbrC += strlen(yytext);return sup ;}
-"<" {printf("inf reconnue \n"); nbrC += strlen(yytext);return inf ;}
+"+" {printf("plus reconnue \n");nbrC += strlen(yytext);return plus;}
+"-" {printf("moins reconnue \n"); nbrC += strlen(yytext); return moins; }
+"*" {printf("etoile reconnue \n"); nbrC += strlen(yytext); return etoile; }
+"/" {printf("div reconnue \n"); nbrC += strlen(yytext);return divi;}
+"&&" {printf("et logique reconnue \n"); nbrC += strlen(yytext);return et;}
+"||" {printf("ou logique reconnue \n"); nbrC += strlen(yytext);return ou;}
+"!" {printf("negation reconnue \n"); nbrC += strlen(yytext);return negation;}
+">" {printf("sup reconnue \n"); nbrC += strlen(yytext);return sup;}
+"<" {printf("inf reconnue \n"); nbrC += strlen(yytext);return inf;}
 "==" {printf("double egalité reconnue \n"); nbrC += strlen(yytext);return double_egale;}
 "!=" {printf("inégalité reconnue \n"); nbrC += strlen(yytext);return inegalite;}
 ">=" {printf("sup ou egale reconnue \n"); nbrC += strlen(yytext);return sup_egal;}

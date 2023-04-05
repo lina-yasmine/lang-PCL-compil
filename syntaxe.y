@@ -4,8 +4,10 @@
  #include<stdlib.h>
  #include<string.h>
 
- int yylex();
- int yyerror(char* msg);
+extern int nbr;
+int nbrC=1;
+int yylex();
+int yyerror(char* msg);
 //  void initialisation();
 //  void afficher();
 
@@ -92,27 +94,40 @@ OPC : sup
 ;
 
  // les opérations arithmétique
-OPER_AR : VALEUR OPA OPER_AR | division |  VALEUR
+OPERATION_AR : VALEUR OPA OPERATION_AR | division |  VALEUR
         ; 
 VALEUR :  VAR | idf 
        ;
  // la division 
-division : VALEUR divi entier { if ($3==0) {printf("Erreur semantique, line %d, colonne %d : Division sur zéro \n\n", nb_ligne, nb_col);exit(-1);};}
-         | VALEUR divi reel { if ($3==0.0) {printf("Erreur semantique, line %d, colonne %d : Division sur zéro \n\n", nb_ligne, nb_col);exit(-1);};}
+division : VALEUR divi entier { if ($3==0) {printf("Erreur semantique, line %d, colonne %d : Division sur zéro \n\n", nb_ligne, nbrC);exit(-1);};}
+         | VALEUR divi reel { if ($3==0.0) {printf("Erreur semantique, line %d, colonne %d : Division sur zéro \n\n", nb_ligne, nbrC);exit(-1);};}
          ; 
 // les opérateurs 
 OPERATEURS : OPL | OPC ;
 
  // boucle des opérations
-OPERATIONS : OPERATION OPERATEURS OPERATIONS
-               | OPERATION
+OPERATIONS : CONDITION OPERATEURS OPERATIONS
+               | CONDITION
 ;
  // les opérations de comparaision et logique
-OPERATION : parouv EXP OPERATEURS EXP parferm
+CONDITION : parouv EXP OPERATEURS EXP parferm
            | parouv negation EXP parferm ;
 
-// j'ai pas encore fait expression normalment fiha les conditions
-EXP : ;
+// les expressions
+EXP : CONDITION| parouv OPERATION_AR parferm | OPERATION_AR; 
+
+// les instructions
+INSTRUCTION:  AFFECTATION INSTRUCTION
+            | COND_IF INSTRUCTION 
+            | BOUCLE_FOR INSTRUCTION
+            | BOUCLE_WHILE INSTRUCTION
+            | ;
+
+AFFECTATION : idf egale EXP pointvir ;
+COND_IF : mc_if accouv INSTRUCTION accfer mc_else accouv INSTRUCTION accfer;
+// idk ida condition d'arret means a real condition or just an idf
+BOUCLE_FOR : mc_for parouv idf deux_point entier deux_point idf parferm accouv INSTRUCTION accfer;  
+BOUCLE_WHILE : mc_while CONDITION accouv INSTRUCTION accfer ; 
          
 
 %%
@@ -124,3 +139,7 @@ int main()
     return 0;
 } 
 int yywrap(){ return 0;};   
+
+int yyerror (char *msg ) { 
+        printf ("Erreur syntaxique, ligne %d, colonne %d \n",nbr,nbrC); 
+        return 1; }
