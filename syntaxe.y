@@ -33,7 +33,7 @@ int yyerror(char* msg);
 %start S
 %%
 
-S: idf accouv mc_var accouv DEC accfer mc_code accouv INST accfer accfer {printf("programme syntaxiquement correcte \n"); YYACCEPT;}
+S: idf accouv mc_var accouv DEC accfer mc_code accouv INSTRUCTION accfer accfer {printf("programme syntaxiquement correcte \n"); YYACCEPT;}
 ;
 
 // les déclaration
@@ -61,9 +61,6 @@ VAR : entier
     | reel
     ;
 
-INST : mc_if parouv parferm 
-    | ;
-
 TYPE : mc_int 
      | mc_float 
      | STRUCT 
@@ -73,10 +70,11 @@ LISTEIDF: idf vir LISTEIDF
         | idf
         ;
 
-// opérateurs arithmétique sans la division , pour traiter le cas de division par 0 apart 
+// opérateurs arithmétique 
 OPA : plus
     | moins
     | etoile
+    | divi
 ;
 
 //opérateurs logique
@@ -94,14 +92,13 @@ OPC : sup
 ;
 
  // les opérations arithmétique
-OPERATION_AR : VALEUR OPA OPERATION_AR | division |  VALEUR
+OPERATION_AR : VALEUR OPA OPERATION_AR |  VALEUR
         ; 
-VALEUR :  VAR | idf 
+        
+VALEUR :  VAR | idf | parouv OPERATION_AR parferm
        ;
- // la division 
-division : VALEUR divi entier { if ($3==0) {printf("Erreur semantique, line %d, colonne %d : Division sur zéro \n\n", nb_ligne, nbrC);exit(-1);};}
-         | VALEUR divi reel { if ($3==0.0) {printf("Erreur semantique, line %d, colonne %d : Division sur zéro \n\n", nb_ligne, nbrC);exit(-1);};}
-         ; 
+
+
 // les opérateurs 
 OPERATEURS : OPL | OPC ;
 
@@ -114,7 +111,7 @@ CONDITION : parouv EXP OPERATEURS EXP parferm
            | parouv negation EXP parferm ;
 
 // les expressions
-EXP : CONDITION| parouv OPERATION_AR parferm | OPERATION_AR; 
+EXP : CONDITION | OPERATION_AR; 
 
 // les instructions
 INSTRUCTION:  AFFECTATION INSTRUCTION
@@ -124,9 +121,11 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
             | ;
 
 AFFECTATION : idf egale EXP pointvir ;
-COND_IF : mc_if accouv INSTRUCTION accfer mc_else accouv INSTRUCTION accfer;
+COND_IF: mc_if EXP accouv INSTRUCTION accfer ELSE;
+
+ELSE: mc_else accouv INSTRUCTION accfer | ;
 // idk ida condition d'arret means a real condition or just an idf
-BOUCLE_FOR : mc_for parouv idf deux_point entier deux_point idf parferm accouv INSTRUCTION accfer;  
+BOUCLE_FOR : mc_for parouv idf deux_point entier deux_point  entier deux_point idf parferm accouv INSTRUCTION accfer;
 BOUCLE_WHILE : mc_while CONDITION accouv INSTRUCTION accfer ; 
          
 
