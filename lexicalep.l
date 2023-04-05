@@ -6,8 +6,8 @@
 //#include"TS.h"
 
 int yylex();
-int nbr = 1;
-int nbrC = 1;
+extern int nbr = 1;
+extern int nbrC = 1;
 %}
 
 Idf [a-zA-Z]([a-z0-9]){0,7}
@@ -57,7 +57,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 ">=" {printf("sup ou egale reconnue \n"); nbrC += strlen(yytext);return sup_egal;}
 "<=" {printf("inf ou egale reconnue \n"); nbrC += strlen(yytext);return inf_egal;}
 "[" {printf("sep [ reconnu\n");nbrC += strlen(yytext); return crochet_ouv;}
-"]" {printf("sep ] reconnu\n");nbrC += strlen(yytext); return crochet_ferm;}
+"]" {printf("sep ] reconnu\n");nbrC += strlen(yytext); return crochet_fer;}
 {saut} {nbr++;nbrC = 1;}
 [ \t] {printf("tabulation reconnu\n");nbrC += strlen(yytext);}
 . {printf("erreur lexicale a la ligne %d et a la colonne %d \n",nbr,nbrC);return err;}
