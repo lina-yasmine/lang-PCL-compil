@@ -33,21 +33,33 @@ int yyerror(char* msg);
 %start S
 %%
 
-S: idf accouv mc_var accouv DEC accfer mc_code accouv INSTRUCTION accfer accfer {printf("programme syntaxiquement correcte \n"); YYACCEPT;}
+S: idf accouv mc_var accouv LIST_DEC accfer mc_code accouv INSTRUCTION accfer accfer {printf("programme syntaxiquement correcte \n");                                                        
+printf ("\n\n\t\t --------------------------- Fin de la compilation --------------------------- \n\n");YYACCEPT;}
 ;
 
 // les déclaration
-DECLARATION:  DEC DECLARATION 
-             |D_TAB DECLARATION
-             |D_CST DECLARATION
-             | ;
 
-DEC : TYPE LISTEIDF pointvir DEC 
-    | ;
-D_TAB : TYPE idf crochet_ouv entier crochet_fer pointvir
+LIST_DEC : DEC pointvir LIST_DEC 
+         | DEC pointvir 
+         ;
+
+DEC : D_VAR 
+    | D_CST 
+    | D_TAB  
+;
+
+D_VAR : TYPE LISTEIDF 
+    
       ;
-D_CST  :  mc_const idf egale VAR pointvir
+
+D_TAB : TYPE idf crochet_ouv entier crochet_fer 
+         
+      ;
+D_CST : mc_const idf egale VAR 
+         
       ; 
+
+// Définition de la structure
 
 STRUCT : mc_struct accouv LISTDEC accfer idf pointvir
        ;  
@@ -55,6 +67,7 @@ STRUCT : mc_struct accouv LISTDEC accfer idf pointvir
 LISTDEC : TYPE idf pointvir LISTDEC
         | TYPE idf pointvir 
         ;
+
 
 // les variables
 VAR : entier
@@ -102,12 +115,13 @@ VALEUR :  VAR | idf | parouv OPERATION_AR parferm
 // les opérateurs 
 OPERATEURS : OPL | OPC ;
 
- // boucle des opérations
-OPERATIONS : CONDITION OPERATEURS OPERATIONS
-               | CONDITION
-;
+ /* // boucle des opérations
+OPERATIONS : OPERATEURS CONDITION
+           | 
+; */
+
  // les opérations de comparaision et logique
-CONDITION : parouv EXP OPERATEURS EXP parferm
+CONDITION : parouv EXP OPERATEURS EXP parferm 
            | parouv negation EXP parferm ;
 
 // les expressions
@@ -133,6 +147,7 @@ BOUCLE_WHILE : mc_while CONDITION accouv INSTRUCTION accfer ;
 int main()
 {
     // initialisation();
+    printf ("\n\n\t\t --------------------------- Debut de la compilation --------------------------- \n\n");
     yyparse();
     // afficher();
     return 0;

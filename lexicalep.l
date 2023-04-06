@@ -23,7 +23,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 
 "VAR" {printf("MC VAR reconnu\n");nbrC += strlen(yytext); return mc_var;}
 "CODE" {printf("MC code reconnu\n");nbrC += strlen(yytext); return mc_code;}
-"INT" {printf("MC int reconnu\n");nbrC += strlen(yytext); return mc_int;}
+"INTEGER" {printf("MC int reconnu\n");nbrC += strlen(yytext); return mc_int;}
 "IF" {printf("mc if reconnu\n");nbrC += strlen(yytext); return mc_if;}
 "ELSE" {printf("mc if reconnu\n");nbrC += strlen(yytext); return mc_else;}
 "FOR" {printf("mc FOR reconnu\n");nbrC += strlen(yytext); return mc_for;}
