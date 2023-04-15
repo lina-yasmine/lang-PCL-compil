@@ -3,26 +3,40 @@
  #include<stdio.h>
  #include<stdlib.h>
  #include<string.h>
+ #include <stdbool.h>
+
 
 extern int nbr;
 int nbrC=1;
 int yylex();
 int yyerror(char* msg);
-//  void initialisation();
-//  void afficher();
+void afficher();
+void initialisation();
+int doubleDeclaration(char entite[]);
+void insererTYPE(char entite[], char type[]);
+void insererCODE(char entite[]);
+
+int i=0,n,j=0,e=0,m;
+char vars[20][9];
+char types[20][9];
+char buf[25];
+char cstype[10];
+// char *type;
+// int a=0;
 
 %}
 
 %union {
         int Tentier;
         float Treel;
+        char* str;
 }
 
-%token mc_int mc_float vir pointvir accfer accouv parferm parouv idf mc_if crochet_ouv crochet_fer
-%token err mc_for mc_while mc_var mc_code mc_struct mc_const egale plus moins etoile divi
+%token <str>mc_int <str>mc_float vir pointvir accfer accouv parferm parouv <str>idf mc_if crochet_ouv crochet_fer
+%token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale plus moins etoile divi
 %token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point
-%token <Tentier> entier <Treel> reel
-
+%token <Tentier>entier <Treel>reel
+%type <str> TYPE VAR
 // Les prioritées 
 %left          et                
 %left          ou         
@@ -46,16 +60,28 @@ LIST_DEC : DEC pointvir LIST_DEC
 DEC : D_VAR 
     | D_CST 
     | D_TAB  
+    | STRUCT // not sure if this is the right place for this
 ;
 
-D_VAR : TYPE LISTEIDF 
-    
-      ;
+D_VAR : TYPE LISTEIDF   {for(n=0;n<i;n++) {
+                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
+                            else  printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                          }
+                          i=0;}
+                          
+;
 
-D_TAB : TYPE idf crochet_ouv entier crochet_fer 
-         
+D_TAB : TYPE idf crochet_ouv entier crochet_fer  {for(n=0;n<i;n++) {
+                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
+                            else  printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                          }
+                          i=0;}
       ;
-D_CST : mc_const idf egale VAR 
+D_CST : mc_const idf egale VAR { if (doubleDeclaration($2)==0) { insererTYPE($2,cstype);
+                                                         insererCODE($2);
+                                                         }
+                        else printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$2);
+                        }
          
       ; 
 
@@ -64,23 +90,31 @@ D_CST : mc_const idf egale VAR
 STRUCT : mc_struct accouv LISTDEC accfer idf pointvir
        ;  
 
-LISTDEC : TYPE idf pointvir LISTDEC
-        | TYPE idf pointvir 
+LISTDEC : TYPE idf pointvir LISTDEC  {for(n=0;n<i;n++) {
+                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
+                            else  printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                          }
+                          i=0;}
+        | TYPE idf pointvir  {for(n=0;n<i;n++) {
+                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
+                            else  printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                          }
+                          i=0;}
         ;
 
 
 // les variables
-VAR : entier
-    | reel
+VAR : entier  {strcpy(cstype,"INTEGER"); printf(buf,"%d",$1);  $$=buf;}
+    | reel  {strcpy(cstype,"FLOAT"); sprintf(buf,"%f",$1);  $$=buf;}
     ;
 
-TYPE : mc_int 
-     | mc_float 
-     | STRUCT 
+TYPE : mc_int {$$="INTEGER";}
+     | mc_float {$$="FLOAT";}
+     | mc_struct {$$="STRUCT";} // for now struct need to change it later
      ; 
 
-LISTEIDF: idf vir LISTEIDF 
-        | idf
+LISTEIDF: idf vir LISTEIDF  { strcpy(vars[i],$1); i++; } 
+        | idf   { strcpy(vars[i],$1); i++; }
         ;
 
 // opérateurs arithmétique 
@@ -146,14 +180,22 @@ BOUCLE_WHILE : mc_while CONDITION accouv INSTRUCTION accfer ;
 %%
 int main()
 {
-    // initialisation();
+    initialisation();
     printf ("\n\n\t\t --------------------------- Debut de la compilation --------------------------- \n\n");
     yyparse();
-    // afficher();
+    afficher(0);
+    afficher(1);
+    afficher(2);
+  
+        /* for(i=1;i<j;i++) {
+    for(n=1;n<j;n++) {
+printf("hereeeeeee %c \n" ,vars[i][j]);}} */
+
+
     return 0;
 } 
 int yywrap(){ return 0;};   
 
 int yyerror (char *msg ) { 
-        printf ("Erreur syntaxique, ligne %d, colonne %d \n",nbr,nbrC); 
+        printf ("Erreur syntaxique, ligne %d, nbrConne %d \n",nbr,nbrC); 
         return 1; }

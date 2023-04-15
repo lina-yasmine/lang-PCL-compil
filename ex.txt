@@ -2,10 +2,15 @@ Aa1b2c3d
 {
 VAR
 {
-    INTEGER Aa , Dd ; 
+    INTEGER Aa , Dd ;  
     FLOAT Bb ;
     CONST Cc = 8 ;
-    INTEGER Ee[5] ;
+    INTEGER Ee[5] ; 
+    INTEGER Dd; 
+    INTEGER Aa; 
+    INTEGER Bb ; 
+    FLOAT Test; 
+
 }
 CODE
 {
