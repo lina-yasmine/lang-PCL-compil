@@ -63,25 +63,31 @@ DEC : D_VAR
     | STRUCT // not sure if this is the right place for this
 ;
 
-D_VAR : TYPE LISTEIDF   {for(n=0;n<i;n++) {
-                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
-                          }
-                          i=0;}
+D_VAR : TYPE LISTEIDF   {
+   for (n = 0; n < i; n++) {
+        if (doubleDeclaration(vars[n])==0) {
+            insererTYPE(vars[n], $1);
+        } else {
+            printf("<< Semantic Error (Double declaration 1), line %d, column %d: %s >>\n", nbr, nbrC, vars[n]);
+        }
+    }
+    i = 0;                      
+    }
                           
 ;
 
 D_TAB : TYPE idf crochet_ouv entier crochet_fer  {for(n=0;n<i;n++) {
                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                            else  printf ("<< Erreur semantique ( Double declaration 2), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
                           }
                           i=0;}
       ;
-D_CST : mc_const idf egale VAR { if (doubleDeclaration($2)==0) { insererTYPE($2,cstype);
-                                                         insererCODE($2);
-                                                         }
-                        else printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$2);
-                        }
+D_CST : mc_const idf egale VAR 
+// { if (doubleDeclaration($2)==0) { insererTYPE($2,cstype);
+//                                                          insererCODE($2);
+//                                                          }
+//                         else printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$2);
+//                         }
          
       ; 
 
@@ -92,12 +98,12 @@ STRUCT : mc_struct accouv LISTDEC accfer idf pointvir
 
 LISTDEC : TYPE idf pointvir LISTDEC  {for(n=0;n<i;n++) {
                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                            else  printf ("<< Erreur semantique ( Double declaration 3), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
                           }
                           i=0;}
         | TYPE idf pointvir  {for(n=0;n<i;n++) {
                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+                            else  printf ("<< Erreur semantique ( Double déclaration 4), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
                           }
                           i=0;}
         ;
@@ -186,7 +192,8 @@ int main()
     afficher(0);
     afficher(1);
     afficher(2);
-  
+
+    
         /* for(i=1;i<j;i++) {
     for(n=1;n<j;n++) {
 printf("hereeeeeee %c \n" ,vars[i][j]);}} */
