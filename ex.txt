@@ -9,13 +9,18 @@ VAR
     INTEGER Ee[5] ; 
     INTEGER Dd; 
     INTEGER Aa; 
+    STRUCT { FLOAT Moyenne ; INTEGER Age ; } Etudiant ;
     INTEGER Bb ; 
     FLOAT Test; 
+    STRUCT { INTEGER Kuuuur ; INTEGER Yuuuf ; } Nomstr ;
 
 }
 CODE
 {
 Aa= 0; 
+Etudiant.Age = 19;
+Nomstr.Yuuuf = 2;
+
 A=(X+7+B)/(5.3-(-2)) ;
 A=6/0;
 IF ((1 + 1) == 2){

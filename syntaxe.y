@@ -34,7 +34,7 @@ char cstype[10];
 
 %token <str>mc_int <str>mc_float vir pointvir accfer accouv parferm parouv <str>idf mc_if crochet_ouv crochet_fer
 %token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale plus moins etoile divi
-%token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point
+%token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point point
 %token <Tentier>entier <Treel>reel
 %type <str> TYPE VAR
 // Les prioritées 
@@ -55,12 +55,14 @@ printf ("\n\n\t\t --------------------------- Fin de la compilation ------------
 
 LIST_DEC : DEC pointvir LIST_DEC 
          | DEC pointvir 
+         
          ;
 
 DEC : D_VAR 
     | D_CST 
     | D_TAB  
-    | STRUCT // not sure if this is the right place for this
+    | STRUCT
+  
 ;
 
 D_VAR : TYPE LISTEIDF   {
@@ -93,8 +95,12 @@ D_CST : mc_const idf egale VAR
 
 // Définition de la structure
 
-STRUCT : mc_struct accouv LISTDEC accfer idf pointvir
+STRUCT : mc_struct accouv LISTDEC accfer idf
        ;  
+// declaration d'une variable de type structure
+// rahi m3a TYPE 
+// utilisation d'une variable struct dans la partie code
+Code_STRUCT : idf point idf;
 
 LISTDEC : TYPE idf pointvir LISTDEC  {for(n=0;n<i;n++) {
                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
@@ -116,7 +122,7 @@ VAR : entier  {strcpy(cstype,"INTEGER"); printf(buf,"%d",$1);  $$=buf;}
 
 TYPE : mc_int {$$="INTEGER";}
      | mc_float {$$="FLOAT";}
-     | mc_struct {$$="STRUCT";} // for now struct need to change it later
+     | mc_struct {$$="STRUCT";} // for now struct need to change it later OR NOT IDK WE'll see 
      ; 
 
 LISTEIDF: idf vir LISTEIDF  { strcpy(vars[i],$1); i++; } 
@@ -148,9 +154,10 @@ OPC : sup
 OPERATION_AR : VALEUR OPA OPERATION_AR |  VALEUR
         ; 
         
-VALEUR :  VAR | idf | parouv OPERATION_AR parferm
+VALEUR :  VAR | IDF | parouv OPERATION_AR parferm 
        ;
-
+IDF : Code_STRUCT
+    | idf
 
 // les opérateurs 
 OPERATEURS : OPL | OPC ;
@@ -174,7 +181,7 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
             | BOUCLE_WHILE INSTRUCTION
             | ;
 
-AFFECTATION : idf egale EXP pointvir ;
+AFFECTATION : IDF egale EXP pointvir ;
 COND_IF: mc_if EXP accouv INSTRUCTION accfer ELSE;
 
 ELSE: mc_else accouv INSTRUCTION accfer | ;
@@ -192,13 +199,6 @@ int main()
     afficher(0);
     afficher(1);
     afficher(2);
-
-    
-        /* for(i=1;i<j;i++) {
-    for(n=1;n<j;n++) {
-printf("hereeeeeee %c \n" ,vars[i][j]);}} */
-
-
     return 0;
 } 
 int yywrap(){ return 0;};   

@@ -99,6 +99,9 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 "," {
     rechercher(yytext,"sep","","");
     printf("sep , reconnu\n");nbrC += strlen(yytext); return vir;}
+"." {
+    rechercher(yytext,"sep","","");
+    printf("point reconnu\n");nbrC += strlen(yytext); return point;}
 "=" {
     rechercher(yytext,"sep","","");
     printf("sep egale reconnu\n");nbrC += strlen(yytext); return egale;}
