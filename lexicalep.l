@@ -64,18 +64,24 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
                }
  else { printf ("<< Erreur lexicale ( IDF trop long ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext); nbrC += strlen(yytext);} 
     }
-{entier} {
+{entier} { 
+    if ((atoi(yytext)>-32768)&&(atoi(yytext)<32767)) {
     removePar(yytext);
 	sprintf(tmp,"%d",atoi(yytext)); 
     rechercher(tmp,"variable","INTEGER",tmp);
     printf("entier reconnu %s \n",yytext);nbrC+=strlen(yytext);
     yylval.Tentier=atoi(yytext); return entier;}
+	else { printf ("<< Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
+        }
 {reel} {
+    if ((atof(yytext)>-32768)&&(atof(yytext)<32767)) {
     removePar(yytext);
 	sprintf(tmp,"%f",atof(yytext));
     rechercher(tmp,"variable","FLOAT",tmp);
     printf("reel reconnu %s \n",yytext);nbrC+=strlen(yytext);
     yylval.Treel=atof(yytext); return reel;}
+    	else { printf ("<< Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
+         }
 {comment} {nbrC = 1;}
 "{" {
     rechercher(yytext,"sep","","");
