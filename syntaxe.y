@@ -65,7 +65,8 @@ DEC : D_VAR
   
 ;
 
-D_VAR : TYPE LISTEIDF   {
+D_VAR : TYPE LISTEIDF 
+  /* {
    for (n = 0; n < i; n++) {
         if (doubleDeclaration(vars[n])==0) {
             insererTYPE(vars[n], $1);
@@ -75,14 +76,15 @@ D_VAR : TYPE LISTEIDF   {
     }
     i = 0;                      
     }
-                          
+                           */
 ;
 
-D_TAB : TYPE idf crochet_ouv entier crochet_fer  {for(n=0;n<i;n++) {
+D_TAB : TYPE idf crochet_ouv entier crochet_fer 
+ /* {for(n=0;n<i;n++) {
                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
                             else  printf ("<< Erreur semantique ( Double declaration 2), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
                           }
-                          i=0;}
+                          i=0;} */
       ;
 D_CST : mc_const idf egale VAR 
 // { if (doubleDeclaration($2)==0) { insererTYPE($2,cstype);
@@ -102,16 +104,18 @@ STRUCT : mc_struct accouv LISTDEC accfer idf
 // utilisation d'une variable struct dans la partie code
 Code_STRUCT : idf point idf;
 
-LISTDEC : TYPE idf pointvir LISTDEC  {for(n=0;n<i;n++) {
-                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double declaration 3), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
-                          }
-                          i=0;}
-        | TYPE idf pointvir  {for(n=0;n<i;n++) {
+LISTDEC : TYPE idf pointvir LISTDEC  
+// {for(n=0;n<i;n++) {
+//                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
+//                             else  printf ("<< Erreur semantique ( Double declaration 3), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
+//                           }
+//                           i=0;}
+        | TYPE idf pointvir  
+        /* {for(n=0;n<i;n++) {
                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
                             else  printf ("<< Erreur semantique ( Double déclaration 4), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
                           }
-                          i=0;}
+                          i=0;} */
         ;
 
 

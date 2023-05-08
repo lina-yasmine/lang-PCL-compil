@@ -79,7 +79,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 	sprintf(tmp,"%f",atof(yytext));
     rechercher(tmp,"variable","FLOAT",tmp);
     printf("reel reconnu %s \n",yytext);nbrC+=strlen(yytext);
-    yylval.Treel=atof(yytext); return reel;}
+    yylval.Treel=atof(yytext); return reel; }
     	else { printf ("<< Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
          }
 {comment} {nbrC = 1;}
