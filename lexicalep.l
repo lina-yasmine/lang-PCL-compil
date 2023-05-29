@@ -59,7 +59,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 {Idf} {
  if (yyleng<9) { 	
                   rechercher(yytext,"IDF","","");
-                  printf("idf reconnu\n");nbrC += strlen(yytext);
+                  printf("idf %s reconnu\n",yytext);nbrC += strlen(yytext);
                   yylval.str=strdup(yytext);return idf;
                }
  else { printf ("<< Erreur lexicale ( IDF trop long ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext); nbrC += strlen(yytext);} 
@@ -157,7 +157,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     rechercher(yytext,"sep","","");
     printf("sep ] reconnu\n");nbrC += strlen(yytext); return crochet_fer;}
 {saut} {nbr++;nbrC = 1;}
-[ \t] {printf("tabulation reconnu\n");nbrC += strlen(yytext);}
-. {printf("erreur lexicale a la ligne %d et a la colonne %d \n",nbr,nbrC);return err;}
+[ \t] {nbrC += strlen(yytext);}
+. {printf("erreur lexicale a la ligne %d et a la colonne %d entite <<%s>> \n",nbr,nbrC,yytext);return err;}
 %%
 

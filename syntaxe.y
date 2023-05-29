@@ -1,11 +1,14 @@
 %{
-
  #include<stdio.h>
  #include<stdlib.h>
  #include<string.h>
  #include <stdbool.h>
 
-
+ int i,indx;
+ char *x;
+ // elem* adr;
+char* type="";
+char* TYPESTRUCT="";
 extern int nbr;
 int nbrC=1;
 int yylex();
@@ -13,16 +16,18 @@ int yyerror(char* msg);
 void afficher();
 void initialisation();
 int doubleDeclaration(char entite[]);
+int recherche(char entite[]);
+void doubleDec(int rech);
 void insererTYPE(char entite[], char type[]);
 void insererCODE(char entite[]);
+void inserer(char entite[], char code[], char type[], char val[]);
 
-int i=0,n,j=0,e=0,m;
-char vars[20][9];
-char types[20][9];
-char buf[25];
-char cstype[10];
-// char *type;
-// int a=0;
+
+void initPile();
+void empiler(char*);
+char* depiler();
+int pileVide();
+void afficherPile();
 
 %}
 
@@ -36,7 +41,8 @@ char cstype[10];
 %token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale plus moins etoile divi
 %token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point point
 %token <Tentier>entier <Treel>reel
-%type <str> TYPE VAR
+/* %type <str> TYPE VAR */
+
 // Les prioritées 
 %left          et                
 %left          ou         
@@ -66,38 +72,38 @@ DEC : D_VAR
 ;
 
 D_VAR : TYPE LISTEIDF 
-  /* {
-   for (n = 0; n < i; n++) {
-        if (doubleDeclaration(vars[n])==0) {
-            insererTYPE(vars[n], $1);
-        } else {
-            printf("<< Semantic Error (Double declaration 1), line %d, column %d: %s >>\n", nbr, nbrC, vars[n]);
-        }
-    }
-    i = 0;                      
-    }
-                           */
+  /* {                 
+   while(!pileVide())
+                    {
+                      x=depiler();
+                      if (doubleDeclaration(strdup($2))==0) 
+                       {
+                      insererTYPE(x,type);
+                        }
+                      else  printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                     }
+                    type="";
+                    x="";
+ } */
 ;
 
 D_TAB : TYPE idf crochet_ouv entier crochet_fer 
- /* {for(n=0;n<i;n++) {
-                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double declaration 2), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
-                          }
-                          i=0;} */
-      ;
+{empiler(strdup($2)); } 
+;
+
 D_CST : mc_const idf egale VAR 
-// { if (doubleDeclaration($2)==0) { insererTYPE($2,cstype);
-//                                                          insererCODE($2);
-//                                                          }
-//                         else printf ("<< Erreur semantique ( Double declaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$2);
-//                         }
-         
+    {
+        empiler(strdup($2));
+    }
       ; 
 
 // Définition de la structure
 
-STRUCT : mc_struct accouv LISTDEC accfer idf
+STRUCT : mc_struct accouv LISTDEC accfer idf 
+   {
+        insererTYPE(strdup($5),"STRUCT");
+   
+    }
        ;  
 // declaration d'une variable de type structure
 // rahi m3a TYPE 
@@ -105,32 +111,57 @@ STRUCT : mc_struct accouv LISTDEC accfer idf
 Code_STRUCT : idf point idf;
 
 LISTDEC : TYPE idf pointvir LISTDEC  
-// {for(n=0;n<i;n++) {
-//                             if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-//                             else  printf ("<< Erreur semantique ( Double declaration 3), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
-//                           }
-//                           i=0;}
-        | TYPE idf pointvir  
-        /* {for(n=0;n<i;n++) {
-                            if (doubleDeclaration(vars[n])==0) insererTYPE(vars[n],$1);
-                            else  printf ("<< Erreur semantique ( Double déclaration 4), ligne %d, colonne %d : %s >>\n",nbr,nbrC,vars[n]);
-                          }
-                          i=0;} */
+ {                 
+   while(!pileVide())
+                    {
+                      x=depiler();
+                      if (doubleDeclaration(strdup($2))==0) 
+                       {
+                      insererTYPE(x,type);
+                        }
+                      else  printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                     }
+                    type="";
+                    x="";
+ }
+        | TYPE idf pointvir   {                 
+   while(!pileVide())
+                    {
+                      x=depiler();
+                      if (doubleDeclaration(strdup($2))==0) 
+                       {
+                      printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                      
+                        }
+                      else   insererTYPE(x,type);
+                     }
+                    type="";
+                    x="";
+ }
+      
         ;
 
 
 // les variables
-VAR : entier  {strcpy(cstype,"INTEGER"); printf(buf,"%d",$1);  $$=buf;}
-    | reel  {strcpy(cstype,"FLOAT"); sprintf(buf,"%f",$1);  $$=buf;}
+VAR : entier 
+ /* {strcpy(type,"INTEGER"); } */
+    | reel 
+ /* {strcpy(type,"FLOAT");} */
     ;
 
-TYPE : mc_int {$$="INTEGER";}
-     | mc_float {$$="FLOAT";}
-     | mc_struct {$$="STRUCT";} // for now struct need to change it later OR NOT IDK WE'll see 
+TYPE : mc_int 
+    {type="INTEGER";}
+     | mc_float 
+     {type="FLOAT";}
+     | mc_struct 
+     
+     // for now struct need to change it later OR NOT IDK WE'll see 
      ; 
 
-LISTEIDF: idf vir LISTEIDF  { strcpy(vars[i],$1); i++; } 
-        | idf   { strcpy(vars[i],$1); i++; }
+LISTEIDF: idf vir LISTEIDF  
+        {empiler(strdup($1));} 
+        | idf  
+        {empiler(strdup($1));}
         ;
 
 // opérateurs arithmétique 
@@ -161,7 +192,7 @@ OPERATION_AR : VALEUR OPA OPERATION_AR |  VALEUR
 VALEUR :  VAR | IDF | parouv OPERATION_AR parferm 
        ;
 IDF : Code_STRUCT
-    | idf
+    | idf 
 
 // les opérateurs 
 OPERATEURS : OPL | OPC ;

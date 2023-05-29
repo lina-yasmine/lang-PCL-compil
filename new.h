@@ -3,21 +3,29 @@
 #include <string.h>
 
 #define SIZE 100 
-
-typedef struct SymbolTableEntry {
+typedef struct elem {
     int state;
     char name[40];
     char type[40];
     char code[40];
     char val[40];
     
-    struct SymbolTableEntry* next;
-} SymbolTableEntry;
+    struct elem* next;
+} elem;
+
+typedef struct uniteP{
+	char* val;
+	struct uniteP* svt;
+}pile;
+pile *tetePile;
+
 
 // la table
-SymbolTableEntry* hashTable[SIZE];
+elem* hashTable[SIZE];
 
-// hash function
+
+
+// la fonction de hashage
 unsigned int hash(char* name) {
     unsigned int hashValue = 0;
     unsigned int len = strlen(name);
@@ -39,7 +47,7 @@ void initialisation() {
 void inserer(char entite[], char code[], char type[], char val[]) {
     unsigned int index = hash(entite);
     
-    SymbolTableEntry* newEntry = (SymbolTableEntry*)malloc(sizeof(SymbolTableEntry));
+    elem* newEntry = (elem*)malloc(sizeof(elem));
     newEntry->state =1;
     strncpy(newEntry->name, entite, sizeof(newEntry->name));
     strncpy(newEntry->type, type, sizeof(newEntry->type));
@@ -62,23 +70,8 @@ void inserer(char entite[], char code[], char type[], char val[]) {
     if (hashTable[index] == NULL) {
         hashTable[index] = newEntry;
     } else {
-        SymbolTableEntry* current = hashTable[index];
-        
-        // we check ida it already exists
-        while (current->next != NULL) {
-            if (strcmp(current->name, newEntry->name) == 0) {
-                // ida it exists, we update ses informations
-                current->state = newEntry->state;
-                strncpy(current->type, newEntry->type, sizeof(newEntry->type));
-                strncpy(current->code, newEntry->code, sizeof(newEntry->code));
-                strncpy(current->val, newEntry->val, sizeof(newEntry->val));
-                free(newEntry);
-                return;
-            }
-            
-            current = current->next;
-        }
-        
+        elem* current = hashTable[index];
+                
         // Isertion a la fin
         current->next = newEntry;
     }
@@ -88,20 +81,23 @@ void inserer(char entite[], char code[], char type[], char val[]) {
 void rechercher(char entite[], char code[], char type[], char val[]) {
     unsigned int index = hash(entite);
     int found = 0;
-    SymbolTableEntry* current = hashTable[index];
+    elem* current = hashTable[index];
     
     while (current != NULL) {
         if (strcmp(current->name, entite) == 0) {
             found = 1;
-                break;
+              if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0 && strcmp(current->type,"") == 0)
+                printf(" << Erreur semantique Double declaration %s \n",entite);
+            break;
         }
         
         current = current->next;
     }
+              
                if (!found)
         {
-            inserer(entite,code,type,val);
-  
+             inserer(entite,code,type,val);
+            
         }
 
 }
@@ -109,26 +105,24 @@ void rechercher(char entite[], char code[], char type[], char val[]) {
 
 int doubleDeclaration(char* name) {
     unsigned int index = hash(name);
+    elem* current = hashTable[index];
     
-    SymbolTableEntry* current = hashTable[index];
-    while (current != NULL) {
-        if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0) {
-            if (strcmp(current->name, name) == 0) {
-                // found, double declaration
-                return -1;
-            }
-        }
-        current = current->next;
-    }
+    // while (current != NULL) {
+    //         if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0 && strcmp(current->type,"") == 0)
+    //         {
+    //             printf("Erreur semantique Double declaration %s \n",name);
+    //             return 0;
+    //         }
+    //     current = current->next;
+    // }
     
-    // No double declaration found
-    return 0;
+    return -1;
 }
 
 void insererTYPE(char* name, char* type) {
     unsigned int index = hash(name);
     
-    SymbolTableEntry* current = hashTable[index];
+    elem* current = hashTable[index];
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
             // Entity found, update its type
@@ -143,8 +137,7 @@ void insererTYPE(char* name, char* type) {
 // Update the code of an entity
 void insererCODE(char* name, char* code) {
     unsigned int index = hash(name);
-    
-    SymbolTableEntry* current = hashTable[index];
+    elem* current = hashTable[index];
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
             // Entity found, update its code
@@ -156,8 +149,8 @@ void insererCODE(char* name, char* code) {
     
 }
 
+// fonction pour enlever les parantheses
 void removePar (char entite[]) {
-
   if (entite[0]=='(') {
                   entite[0]=' ';
                   entite[strlen(entite)-1]=' ';
@@ -177,7 +170,7 @@ void afficher(int choice)
         printf("\t|           Nom_Entite         |   Code_Entite    | Type_Entite | Val_Entite\n");
         printf("__________________________________________________________________________________________\n");
          for (int i = 0; i < SIZE; i++) {
-        SymbolTableEntry* temp = hashTable[i];
+        elem* temp = hashTable[i];
         while (temp != NULL)
         {
             if (strcmp(temp->code, "sep") != 0 && strcmp(temp->code, "mot cle") != 0)
@@ -201,7 +194,7 @@ void afficher(int choice)
         printf("\t| \t \t NomEntite | \t CodeEntite\n");
         printf("_______________________________________________________\n");
         for (int i = 0; i < SIZE; i++) {
-        SymbolTableEntry* temp = hashTable[i];
+        elem* temp = hashTable[i];
         while (temp != NULL)
         {
             if ((strcmp(temp->code, "mot cle") == 0))
@@ -222,7 +215,7 @@ void afficher(int choice)
         printf("\t|         NomEntite         |      CodeEntite      \t \n");
         printf("___________________________________________________________\n");
         for (int i = 0; i < SIZE; i++) {
-        SymbolTableEntry* temp = hashTable[i];
+        elem* temp = hashTable[i];
         while (temp != NULL)
         {
             if ((strcmp(temp->code, "sep") == 0))
@@ -237,4 +230,116 @@ void afficher(int choice)
          
     }
     }
+}
+
+
+// int recherche(char entite[]) {
+//     unsigned int index = hash(entite);
+//     int found = 0;
+//     elem* current = hashTable[index];
+    
+//     while (current != NULL) {
+//         if (strcmp(current->name, entite) == 0) {
+//             found = 1;
+//                 break;
+//         }
+        
+//         current = current->next;
+//     }
+//     if (found==1) printf("fouuund--------------");
+// return found;
+// }
+
+int nonDec (char* name)
+{ 
+    unsigned int index = hash(name);
+    elem* current = hashTable[index];
+    while (current != NULL) {
+        if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0) {
+            if (strcmp(current->name,name)==0 && strcmp(current->type, "")==0) {
+                printf(" IDF NON DECLARÉ ");
+                return -1;
+            }
+        }
+        current = current->next;
+    }
+    
+    return 0;
+}
+
+int incomptabiliteType(int type1,int type2)
+{
+    if(type1!=type2)
+    {
+         printf("<< erreur semantique incompatibilite des types >>");
+    }
+    return type1;
+}
+
+
+void tailleFaux(int tailleTab)
+{
+    if(tailleTab<=0)
+    {
+        printf("erreur semantique la taille doit etre strictement positive"); 
+    }
+}
+
+
+void divisionParZero(char* zero)
+{
+    if(strcmp(zero,"0")==0)
+    {
+       printf("erreur semantique divison par zero");
+    }
+}
+
+
+
+// la pile c'est pour empiler et depiler les elements f syntaxique
+void initPile()
+{
+	tetePile=NULL;
+}
+
+void empiler(char *x)
+{
+	pile *e=(pile*)malloc(sizeof(pile));
+	e->val=strdup(x);
+	e->svt=tetePile;
+	tetePile=e;	
+}
+
+char* depiler()
+{
+	char *x;
+	pile *e;
+	if(tetePile!=NULL)
+	{
+		x=strdup((tetePile)->val);
+		e=tetePile;
+		tetePile=(tetePile)->svt;
+		free(e);
+		return x;		
+	}
+	else
+	{
+		return NULL;
+	}	
+}
+
+int pileVide()
+{
+	if(tetePile==NULL) return 1;
+	return 0;	
+}
+
+void afficherPile()
+{
+ 	pile* t=tetePile;
+	while(t!=NULL)
+	{
+		printf("%s\n",t->val);
+		t=t->svt;
+	}   
 }
