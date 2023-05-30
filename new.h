@@ -446,7 +446,7 @@ int doubleDeclaration(char* name) {
         while (elmC != NULL) {
         if (strcmp(elmC->name, name) == 0 && elmC->state == 1) {
             // double declaration
-            printf("Erreur: %s est deja declaree-------------------\n", name);
+            // printf("Erreur: %s est deja declaree-------------------\n", name);
             return 1;
             }    
         }
