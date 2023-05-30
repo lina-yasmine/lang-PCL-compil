@@ -2,31 +2,44 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SIZE 100 
-typedef struct elem {
+#define SIZE 100
+
+typedef struct element {
+    int state;
+    char name[20];
+    char code[20];
+    char type[20];
+    char val[40];
+    struct element *next;
+} element;
+
+typedef struct sep {
     int state;
     char name[40];
-    char type[40];
-    char code[40];
-    char val[40];
-    
-    struct elem* next;
-} elem;
+    char type[25];
+    struct sep *next;
+} sep;
+
+typedef struct mot_cle {
+    int state;
+    char name[40];
+    char type[25];
+    struct mot_cle *next;
+} mot_cle;
 
 typedef struct uniteP{
 	char* val;
 	struct uniteP* svt;
 }pile;
+
 pile *tetePile;
 
+element* table[SIZE];
+sep* sep_table[SIZE];
+mot_cle* mot_cle_table[SIZE];
 
-// la table
-elem* hashTable[SIZE];
-
-
-
-// la fonction de hashage
-unsigned int hash(char* name) {
+// Hash function
+unsigned int hashage(char* name) {
     unsigned int hashValue = 0;
     unsigned int len = strlen(name);
     
@@ -39,114 +52,311 @@ unsigned int hash(char* name) {
 
 void initialisation() {
     for (int i = 0; i < SIZE; i++) {
-        hashTable[i] = NULL;
+        table[i] = NULL;
+        sep_table[i] = NULL;
+        mot_cle_table[i] = NULL;
     }
 }
 
-// insertion
-void inserer(char entite[], char code[], char type[], char val[]) {
-    unsigned int index = hash(entite);
-    
-    elem* newEntry = (elem*)malloc(sizeof(elem));
-    newEntry->state =1;
-    strncpy(newEntry->name, entite, sizeof(newEntry->name));
-    strncpy(newEntry->type, type, sizeof(newEntry->type));
-    
-    if (strcmp(code, "sep") == 0) {
-        strncpy(newEntry->code, code, sizeof(newEntry->code));
-        strncpy(newEntry->val, "", sizeof(newEntry->val));
-    } else if (strcmp(code, "mot cle") == 0) {
-        strncpy(newEntry->code, code, sizeof(newEntry->code));
-        strncpy(newEntry->val, "", sizeof(newEntry->val));
-    }
-     else {
-        strncpy(newEntry->code, code, sizeof(newEntry->code));
-        strncpy(newEntry->val, val, sizeof(newEntry->val));
-    }
-    
-    newEntry->next = NULL;
-    
-    // si la table est vide on insere le premier element
-    if (hashTable[index] == NULL) {
-        hashTable[index] = newEntry;
-    } else {
-        elem* current = hashTable[index];
-                
-        // Isertion a la fin
-        current->next = newEntry;
-    }
-}
+// Step 3: Insert lexical entities into symbol tables
+void inserer(char entite[], char code[], char type[], char val[], int y) {
+    int hash = hashage(entite);
 
-
-void rechercher(char entite[], char code[], char type[], char val[]) {
-    unsigned int index = hash(entite);
-    int found = 0;
-    elem* current = hashTable[index];
-    
-    while (current != NULL) {
-        if (strcmp(current->name, entite) == 0) {
-            found = 1;
-              if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0 && strcmp(current->type,"") == 0)
-                printf(" << Erreur semantique Double declaration %s \n",entite);
-            break;
-        }
-        
-        current = current->next;
-    }
-              
-               if (!found)
+    switch (y) {
+        case 0: // Insert into the IDF and CONST table
         {
-             inserer(entite,code,type,val);
-            
+            if (table[hash] == NULL) {
+                element* newElement = (element *)malloc(sizeof(element));
+                if (newElement == NULL) {
+                    printf("Memory allocation failed.\n");
+                    return;
+                }
+                newElement->state = 0;
+                strcpy(newElement->name, entite);
+                strcpy(newElement->code, code);
+                strcpy(newElement->type, type);
+                strcpy(newElement->val, val);
+                newElement->next = NULL;
+                table[hash] = newElement;
+                // printf("Inserted %s at table[%d]\n", entite, hash);
+            } else {
+                // we have a collision
+                element* elmC = table[hash];
+                while (elmC->next != NULL) {
+                    elmC = elmC->next;
+                }
+                element* newElement = (element *)malloc(sizeof(element));
+                if (newElement == NULL) {
+                    printf("Memory allocation failed.\n");
+                    return;
+                }
+                newElement->state = 0;
+                strcpy(newElement->name, entite);
+                strcpy(newElement->code, code);
+                strcpy(newElement->type, type);
+                strcpy(newElement->val, val);
+                newElement->next = NULL;
+                elmC->next = newElement;
+                // printf("Inserted %s at table[%d] (collision)\n", entite, hash);
+            }
         }
+        break;
 
+        case 1: // Insert into the mot_cle table
+        {
+            if (mot_cle_table[hash] == NULL) {
+                mot_cle* newmot_cle = (mot_cle *)malloc(sizeof(mot_cle));
+                if (newmot_cle == NULL) {
+                    printf("Memory allocation failed.\n");
+                    return;
+                }
+                newmot_cle->state = 1;
+                strcpy(newmot_cle->name, entite);
+                strcpy(newmot_cle->type, code);
+                newmot_cle->next = NULL;
+                mot_cle_table[hash] = newmot_cle;
+                // printf("Inserted %s at mot_cle_table[%d]\n", entite, hash);
+            } else {
+                mot_cle* currmot_cle = mot_cle_table[hash];
+                while (currmot_cle->next != NULL) {
+                    currmot_cle = currmot_cle->next;
+                }
+                mot_cle* newmot_cle = (mot_cle *)malloc(sizeof(mot_cle));
+                if (newmot_cle == NULL) {
+                    printf("Memory allocation failed.\n");
+                    return;
+                }
+                newmot_cle->state = 1;
+                strcpy(newmot_cle->name, entite);
+                strcpy(newmot_cle->type, code);
+                newmot_cle->next = NULL;
+                currmot_cle->next = newmot_cle;
+                // printf("Inserted %s at mot_cle_table[%d] (collision)\n", entite, hash);
+            }
+        }
+        break;
+
+        case 2: // Insert into the sep table
+        {
+            if (sep_table[hash] == NULL) {
+                sep* newsep = (sep *)malloc(sizeof(sep));
+                if (newsep == NULL) {
+                    printf("Memory allocation failed.\n");
+                    return;
+                }
+                newsep->state = 1;
+                strcpy(newsep->name, entite);
+                strcpy(newsep->type, code);
+                newsep->next = NULL;
+                sep_table[hash] = newsep;
+                // printf("Inserted %s at sep_table[%d]\n", entite, hash);
+            } else {
+                sep* currsep = sep_table[hash];
+                while (currsep->next != NULL) {
+                    currsep = currsep->next;
+                }
+                sep* newsep = (sep *)malloc(sizeof(sep));
+                if (newsep == NULL) {
+                    printf("Memory allocation failed.\n");
+                    return;
+                }
+                newsep->state = 1;
+                strcpy(newsep->name, entite);
+                strcpy(newsep->type, code);
+                newsep->next = NULL;
+                currsep->next = newsep;
+                // printf("Inserted %s at sep_table[%d] (collision)\n", entite, hash);
+            }
+        }
+        break;
+    }
+}
+void rechercher(char entite[], char code[], char type[], char val[], int y) {
+    int hash = hashage(entite);
+    int trouve = 0;
+
+    switch (y) {
+        case 0: // Check if the entry in IDF and CONST tables is free
+        {
+            if (table[hash] == NULL) {
+                inserer(entite, code, type, val, 0);
+            } else {
+                // Check if the entry at the hash index in IDF and CONST tables has the same entity
+                element* elmC = table[hash];
+                while (elmC != NULL) {
+                    if (strcmp(elmC->name, entite) == 0) {
+                        trouve = 1;
+                        break;
+                    }
+                    elmC = elmC->next;
+                }
+                if (trouve == 0) {
+                    inserer(entite, code, type, val, 0);
+                }
+            }
+        }
+        break;
+
+        case 1: // Check if the entry in the mot_cle table is free
+        {
+            if (mot_cle_table[hash] == NULL) {
+                inserer(entite, code, type, val, 1);
+            } else {
+                // Check if the entry at the hash index in the mot_cle table has the same entity
+                mot_cle* currmot_cle = mot_cle_table[hash];
+                while (currmot_cle != NULL) {
+                    if (strcmp(currmot_cle->name, entite) == 0) {
+                        trouve = 1;
+                        break;
+                    }
+                    currmot_cle = currmot_cle->next;
+                }
+                if (trouve == 0) {
+                    inserer(entite, code, type, val, 1);
+                }
+            }
+        }
+        break;
+
+        case 2: // Check if the entry in the sep table is free
+        {
+            if (sep_table[hash] == NULL) {
+                inserer(entite, code, type, val, 2);
+            } else {
+                // Check if the entry at the hash index in the sep table has the same entity
+                sep* currsep = sep_table[hash];
+                while (currsep != NULL) {
+                    if (strcmp(currsep->name, entite) == 0) {
+                        trouve = 1;
+                        break;
+                    }
+                    currsep = currsep->next;
+                }
+                if (trouve == 0) {
+                    inserer(entite, code, type, val, 2);
+                }
+            }
+        }
+        break;
+    }
 }
 
+void afficher() {
 
-int doubleDeclaration(char* name) {
-    unsigned int index = hash(name);
-    elem* current = hashTable[index];
-    
-    // while (current != NULL) {
-    //         if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0 && strcmp(current->type,"") == 0)
-    //         {
-    //             printf("Erreur semantique Double declaration %s \n",name);
-    //             return 0;
-    //         }
-    //     current = current->next;
-    // }
-    
-    return -1;
-}
+    printf("\n\n\t/***************\tTable des symboles des IDF & CST\t*************/\n\n");
+    printf("____________________________________________________________________\n");
+    printf("\t Nom_Entite |  Code_Entite   |  Type_Entite | Val_Entite\n");
+    printf("____________________________________________________________________\n");
 
-void insererTYPE(char* name, char* type) {
-    unsigned int index = hash(name);
-    
-    elem* current = hashTable[index];
-    while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-            // Entity found, update its type
-            strncpy(current->type, type, sizeof(current->type));
-            return;
+    for (int i = 0; i < SIZE; i++) {
+        element* elmC = table[i];
+        while (elmC != NULL) {
+            if (elmC->state == 1) {
+                if (strcmp(elmC->type, "FLOAT") != 0 && strcmp(elmC->type, "INTEGER") != 0) {
+                    printf(" %18s |%15s | %12s |              |  \n", elmC->name, elmC->code, elmC->type);
+                } else {
+                    printf(" %18s |%15s | %12s | %12s |\n", elmC->name, elmC->code, elmC->type, elmC->val);
+                }
+            }
+            elmC = elmC->next;
         }
-        current = current->next;
     }
 
+    printf("\n\n\t/***************\tTable des symboles des mots cle\t*************/\n\n");
+    printf("___________________________________________________________\n");
+    printf("\t\t NomEntite             |  CodeEntite       | \n");
+    printf("___________________________________________________________\n");
+
+    // Traverse the mot_cle table
+    for (int i = 0; i < SIZE; i++) {
+        mot_cle* currmot_cle = mot_cle_table[i];
+        while (currmot_cle != NULL) {
+            if (currmot_cle->state == 1) {
+                printf("%27s            |    %12s   | \n", currmot_cle->name, currmot_cle->type);
+            }
+            currmot_cle = currmot_cle->next;
+        }
+    }
+
+    printf("\n\n\t/***************\tTable des symboles des separateurs\t*************/\n\n");
+    printf("_____________________________________\n");
+    printf("\t| NomEntite |  CodeEntite | \n");
+    printf("_____________________________________\n");
+
+    // Traverse the sep table
+    for (int i = 0; i < SIZE; i++) {
+        sep* currsep = sep_table[i];
+        while (currsep != NULL) {
+            if (currsep->state == 1) {
+               
+                        printf("\t|%10s |%12s | \n", currsep->name, currsep->type);
+                   
+            }
+            currsep = currsep->next;
+        }
+    }
 }
 
-// Update the code of an entity
-void insererCODE(char* name, char* code) {
-    unsigned int index = hash(name);
-    elem* current = hashTable[index];
-    while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-            // Entity found, update its code
-            strncpy(current->code, code, sizeof(current->code));
-            return;
+void insererTYPE(char entite[], char type[])
+{
+    int hash = hashage(entite);
+    int trouve = 0;
+    if (table[hash] != NULL) {
+        element* elmC = table[hash];
+        while (elmC != NULL && trouve == 0) {
+            if (strcmp(elmC->name, entite) == 0) {
+                trouve = 1;
+                strcpy(elmC->type, type);
+            }    
         }
-        current = current->next;
     }
-    
+    else
+    {
+        printf("Erreur: %s n'existe pas dans la table des symboles\n", entite);
+    }
+}
+
+char *GetType(char entite[])
+{
+    int hash = hashage(entite);
+    if (table[hash] != NULL) {
+        element* elmC = table[hash];
+        while (elmC != NULL) {
+            if (strcmp(elmC->name, entite) == 0) {
+                return elmC->type;
+            }    
+        }
+    }
+    else
+    {
+        printf("Erreur: %s n'existe pas dans la table des symboles\n", entite);
+    }
+    return "";
+}
+
+
+int Declaration(char entite[]){
+    int hash = hashage(entite);
+    if (table[hash] != NULL) {
+        element* elmC = table[hash];
+        while (elmC != NULL) {
+            if (strcmp(elmC->name, entite) == 0) {
+                if (strcmp(elmC->type, " ") != 0)
+                {
+                    return 1;
+                }
+                else
+                {
+                    return 0;
+                }     
+            }    
+        }
+    }
+    else
+    {
+        return 0;
+    }
+    return 0;
 }
 
 // fonction pour enlever les parantheses
@@ -156,145 +366,6 @@ void removePar (char entite[]) {
                   entite[strlen(entite)-1]=' ';
   }
 }
-
-
-void afficher(int choice)
-{
-  
-    switch (choice)
-    {
-    case 0:
-    {
-        printf("\n\n\t\t\t/*************** Table des symboles des IDF & CST *************/\n\n");
-        printf("_________________________________________________________________________________________\n");
-        printf("\t|           Nom_Entite         |   Code_Entite    | Type_Entite | Val_Entite\n");
-        printf("__________________________________________________________________________________________\n");
-         for (int i = 0; i < SIZE; i++) {
-        elem* temp = hashTable[i];
-        while (temp != NULL)
-        {
-            if (strcmp(temp->code, "sep") != 0 && strcmp(temp->code, "mot cle") != 0)
-            {
-                printf("\t|          %10s           |%15s | %12s |%12s\n", temp->name, temp->code, temp->type, temp->val);
-            }
-            temp = temp->next;
-        }  
-        // printf("\n");
-     }
-        break;
-    }
-
-
-
-
-    case 1:
-    {
-        printf("\n\n\t\t\t/*************** Table des symboles des mots cle *************/\n\n");
-        printf("_______________________________________________________\n");
-        printf("\t| \t \t NomEntite | \t CodeEntite\n");
-        printf("_______________________________________________________\n");
-        for (int i = 0; i < SIZE; i++) {
-        elem* temp = hashTable[i];
-        while (temp != NULL)
-        {
-            if ((strcmp(temp->code, "mot cle") == 0))
-            {
-                printf("\t|%25s |\t%12s\n", temp->name, temp->code);
-            }
-            temp = temp->next;
-        }
-       
-           }
-        break;
-     
-    }
-    case 2:
-    {
-        printf("\n\n\t\t\t/*************** Table des symboles des separateurs *************/\n\n");
-        printf("__________________________________________________________\n");
-        printf("\t|         NomEntite         |      CodeEntite      \t \n");
-        printf("___________________________________________________________\n");
-        for (int i = 0; i < SIZE; i++) {
-        elem* temp = hashTable[i];
-        while (temp != NULL)
-        {
-            if ((strcmp(temp->code, "sep") == 0))
-            {
-                printf("\t|         %10s         | %12s \t \n", temp->name, temp->code);
-            }
-            temp = temp->next;
-        }
-   
-           }
-        break ; 
-         
-    }
-    }
-}
-
-
-// int recherche(char entite[]) {
-//     unsigned int index = hash(entite);
-//     int found = 0;
-//     elem* current = hashTable[index];
-    
-//     while (current != NULL) {
-//         if (strcmp(current->name, entite) == 0) {
-//             found = 1;
-//                 break;
-//         }
-        
-//         current = current->next;
-//     }
-//     if (found==1) printf("fouuund--------------");
-// return found;
-// }
-
-int nonDec (char* name)
-{ 
-    unsigned int index = hash(name);
-    elem* current = hashTable[index];
-    while (current != NULL) {
-        if (strcmp(current->code, "mot cle") != 0 && strcmp(current->code, "sep") != 0) {
-            if (strcmp(current->name,name)==0 && strcmp(current->type, "")==0) {
-                printf(" IDF NON DECLARÉ ");
-                return -1;
-            }
-        }
-        current = current->next;
-    }
-    
-    return 0;
-}
-
-int incomptabiliteType(int type1,int type2)
-{
-    if(type1!=type2)
-    {
-         printf("<< erreur semantique incompatibilite des types >>");
-    }
-    return type1;
-}
-
-
-void tailleFaux(int tailleTab)
-{
-    if(tailleTab<=0)
-    {
-        printf("erreur semantique la taille doit etre strictement positive"); 
-    }
-}
-
-
-void divisionParZero(char* zero)
-{
-    if(strcmp(zero,"0")==0)
-    {
-       printf("erreur semantique divison par zero");
-    }
-}
-
-
 
 // la pile c'est pour empiler et depiler les elements f syntaxique
 void initPile()
@@ -342,4 +413,113 @@ void afficherPile()
 		printf("%s\n",t->val);
 		t=t->svt;
 	}   
+}
+
+int nonDec (char* name)
+{ 
+       unsigned int index = hashage(name);
+    element* current = table[index];
+    
+    while (current != NULL) {
+          if (strcmp(current->name, name) == 0) {
+                if (current->state == 0)
+                {
+                    // variable non déclarée
+                    return 1;
+                }
+                else
+                {
+                    // variable déclarée
+                    return 0;
+                }     
+            }  
+        current = current->next;
+    }
+    
+    return -1;
+   
+}
+
+int doubleDeclaration(char* name) {
+      int hash = hashage(name);
+        element* elmC = table[hash];
+        while (elmC != NULL) {
+        if (strcmp(elmC->name, name) == 0 && elmC->state == 1) {
+            // double declaration
+            printf("Erreur: %s est deja declaree-------------------\n", name);
+            return 1;
+            }    
+        }
+    
+    return 0;
+}
+
+// Update the state to 1 ki ndeclariw une variable
+void updateSTATE(char* name) {
+    unsigned int index = hashage(name);
+    element* current = table[index];
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            // Entity found, update its state
+            current->state=1;
+            return;
+        }
+        current = current->next;
+    }
+    
+}
+
+// Update the code of an entity
+void insererCODE(char* name) {
+    unsigned int index = hashage(name);
+    element* current = table[index];
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            // Entity found, update its code
+            strncpy(current->code,"CONST", sizeof(current->code));
+            return;
+        }
+        current = current->next;
+    }
+    
+}
+
+// Update la valeur
+void insererVAL(char* name , char* val) {
+    unsigned int index = hashage(name);
+    element* current = table[index];
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            strncpy(current->val, val , sizeof(current->val));
+            return;
+        }
+        current = current->next;
+    }
+    
+}
+
+void tailleFaux(int tailleTab)
+{
+    if(tailleTab<=0)
+    {
+        printf("erreur semantique la taille d'un tableau doit etre strictement positive \n "); 
+    }
+}
+
+
+void divisionParZero(char* zero)
+{
+    if(strcmp(zero,"0")==0)
+    {
+       printf("erreur semantique divison par zero");
+    }
+}
+
+int incomptabiliteType(int type1,int type2)
+{
+    if(type1!=type2)
+    {
+         printf("<< erreur semantique incompatibilite des types >>");
+    }
+    return type1;
 }
