@@ -10,6 +10,7 @@ typedef struct element {
     char code[20];
     char type[20];
     char val[40];
+    int nbrAff;
     struct element *next;
 } element;
 
@@ -76,6 +77,7 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
                 strcpy(newElement->code, code);
                 strcpy(newElement->type, type);
                 strcpy(newElement->val, val);
+                newElement->nbrAff=0;
                 newElement->next = NULL;
                 table[hash] = newElement;
                 // printf("Inserted %s at table[%d]\n", entite, hash);
@@ -95,6 +97,7 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
                 strcpy(newElement->code, code);
                 strcpy(newElement->type, type);
                 strcpy(newElement->val, val);
+                newElement->nbrAff=0;
                 newElement->next = NULL;
                 elmC->next = newElement;
                 // printf("Inserted %s at table[%d] (collision)\n", entite, hash);
@@ -515,11 +518,51 @@ void divisionParZero(char* zero)
     }
 }
 
+// int incomptabiliteType(int type1,int type2)
+// {
+//     if(type1!=type2)
+//     {
+//          printf("<< erreur semantique incompatibilite des types >>");
+//     }
+//     return type1;
+// }
 int incomptabiliteType(int type1,int type2)
 {
     if(type1!=type2)
     {
-         printf("<< erreur semantique incompatibilite des types >>");
+        return 1;
+        printf("<< erreur semantique incompatibilite des types >>");
     }
-    return type1;
+    return 0;
+}
+
+void nbrAFF(char* name) {
+    unsigned int index = hashage(name);
+    element* current = table[index];
+    
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            current->nbrAff++;
+        }
+        current = current->next;
+    }
+    
+}
+
+int reaffectCst(char* name )
+{
+
+   unsigned int index = hashage(name);
+    element* current = table[index];
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0 && strcmp(current->code,"CONST")==0) {
+            if (current->nbrAff>1)
+            {
+                return 1;
+                printf("<< erreur semantique reaffectation d'une constante >> \n");
+            }
+        }
+        current = current->next;
+    }
+  return 0;
 }

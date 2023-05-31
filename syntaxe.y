@@ -30,6 +30,8 @@ void insererCODE(char* name);
 void inserer(char entite[], char code[], char type[], char val[]);
 char *GetType(char entite[]);
 void tailleFaux(int tailleTab);
+void nbrAFF(char* name);
+int reaffectCst(char* name );
 
 void initPile();
 void empiler(char*);
@@ -112,6 +114,7 @@ D_CST : mc_const idf egale VAR
         insererCODE(strdup($2));
         insererVAL(strdup($2),strdup(val));
         val = "";
+        nbrAFF($2);
     }
       ; 
 
@@ -142,27 +145,31 @@ Code_STRUCT : idf point idf
 
 LISTDEC : TYPE idf pointvir LISTDEC  
  {        
-        updateSTATE(strdup($2));
+        
    while(!pileVide())
                     {
                       x=depiler();
                       insererTYPE(x,type);
                       if (doubleDeclaration(strdup($2))==1) 
                        printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                      
                      }
+                      updateSTATE(strdup($2));
                     type="";
                     x="";
  }
         | TYPE idf pointvir   {   
-         updateSTATE(strdup($2));
+      
    while(!pileVide())
                     {
                       x=depiler(); 
                       insererTYPE(x,type);
                       if (doubleDeclaration(strdup($2))==1) 
                         printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                         
 
-                     }
+                     } 
+                      updateSTATE(strdup($2));
                     type="";
                     x="";
  }
@@ -282,13 +289,14 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
 
 AFFECTATION : IDF egale EXP pointvir 
 { 
+  nbrAFF($2);
   x=depiler();
   if (nonDec(strdup(x))==0) 
    {
     // si incompatibilité des type on print erreur sinon on insere la valeur
       if (strcmp(GetType(strdup(x)),type)!=0)
                 printf("<< Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
-      else insererVAL(x,val);
+      else if (reaffectCst(strdup(x))==0) insererVAL(x,val) ; else printf("<< Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
  }
   val = "";
   type = "";
