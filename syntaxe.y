@@ -7,6 +7,8 @@
  int i,indx;
  char *x;
  // elem* adr;
+char *y = "";
+char *z = "";
 char* type="";
 char* val="";
 char buf[25];
@@ -38,19 +40,17 @@ void afficherPile();
 %}
 
 %union {
-        int Tentier;
-        float Treel;
         char* str;
+        struct { char* type; int Tentier; float Treel; }NT;
 }
 
 %token <str>mc_int <str>mc_float vir pointvir accfer accouv parferm parouv <str>idf mc_if crochet_ouv crochet_fer
 %token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale plus moins etoile divi
 %token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point point
-%token <Tentier>entier <Treel>reel
+%token <NT>entier <NT>reel
 /* %type <str> TYPE VAR */
-// add the appropriate type for D_CST
 %type <str> D_CST
-
+%type <NT> VAR 
 // Les prioritées 
 %left          et                
 %left          ou         
@@ -100,7 +100,7 @@ D_TAB : TYPE idf crochet_ouv entier crochet_fer
 {
  empiler(strdup($2)); 
  updateSTATE(strdup($2));
- tailleFaux($4);
+ tailleFaux($4.Tentier);
  } 
 
 ;
@@ -129,7 +129,9 @@ STRUCT : mc_struct accouv LISTDEC accfer idf
 // rahi m3a TYPE 
 // utilisation d'une variable struct dans la partie code
 Code_STRUCT : idf point idf
-{ if (nonDec(strdup($3))==1) {
+{  
+  // empiler(strdup($3));
+  if (nonDec(strdup($3))==1) {
      printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3);
                        } 
   if (nonDec(strdup($1))==1) {
@@ -170,13 +172,36 @@ LISTDEC : TYPE idf pointvir LISTDEC
 
 // les variables
 VAR : entier 
-  {    sprintf(buf, "%d", $1);
-     val=buf; }
- /* {strcpy(type,"INTEGER"); } */
+  {  
+  
+
+     $$.type="INTEGER";
+     $$.Tentier=$1.Tentier;
+     sprintf(buf, "%d", $1.Tentier);
+     val=buf;
+     empiler(buf);
+     type="INTEGER";
+     empiler($1.type);
+    //  printf("IM STORING ____________type : %s \n", $$.type);
+    //  printf("IM STORING ____________val : %s \n", buf);
+     }
+
     | reel 
-  {   sprintf(buf, "%f", $1); 
-    val=buf; }
- /* {strcpy(type,"FLOAT");} */
+  {   
+    
+    $$.type="FLOAT";
+    $$.Treel=$1.Treel;
+    sprintf(buf, "%f", $1.Treel); 
+    val=buf;
+    empiler(buf);
+    type="FLOAT";
+    empiler($1.type);
+    // printf("IM STORING ____________type : %s \n", $$.type);
+    // printf("IM STORING ____________val : %s \n", buf);
+   
+    
+    }
+
     ;
 
 TYPE : mc_int 
@@ -190,7 +215,7 @@ TYPE : mc_int
 
 LISTEIDF: idf vir LISTEIDF  
         {
-        updateSTATE(strdup($1));
+          updateSTATE(strdup($1));
           empiler(strdup($1));} 
         | idf  
         {
@@ -227,6 +252,7 @@ VALEUR :  VAR | IDF | parouv OPERATION_AR parferm
        ;
 IDF : Code_STRUCT
     | idf { 
+      // empiler(strdup($1));
       if (nonDec(strdup($1))==1) {
      printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
                        } 
@@ -255,9 +281,17 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
             | ;
 
 AFFECTATION : IDF egale EXP pointvir 
-{
-  
-// if (strcmp(getType(strdup($1)),getType(strdup($3)))!=0) printf ("<< Erreur semantique ( type incompatible ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
+{ 
+  x=depiler();
+  if (nonDec(strdup(x))==0) 
+   {
+    // si incompatibilité des type on print erreur sinon on insere la valeur
+      if (strcmp(GetType(strdup(x)),type)!=0)
+                printf("<< Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+      else insererVAL(x,val);
+ }
+  val = "";
+  type = "";
   
 };
 COND_IF: mc_if EXP accouv INSTRUCTION accfer ELSE;
