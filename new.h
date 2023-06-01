@@ -68,10 +68,7 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
         {
             if (table[hash] == NULL) {
                 element* newElement = (element *)malloc(sizeof(element));
-                if (newElement == NULL) {
-                    printf("Memory allocation failed.\n");
-                    return;
-                }
+                
                 newElement->state = 0;
                 strcpy(newElement->name, entite);
                 strcpy(newElement->code, code);
@@ -80,7 +77,7 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
                 newElement->nbrAff=0;
                 newElement->next = NULL;
                 table[hash] = newElement;
-                // printf("Inserted %s at table[%d]\n", entite, hash);
+
             } else {
                 // we have a collision
                 element* elmC = table[hash];
@@ -88,10 +85,7 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
                     elmC = elmC->next;
                 }
                 element* newElement = (element *)malloc(sizeof(element));
-                if (newElement == NULL) {
-                    printf("Memory allocation failed.\n");
-                    return;
-                }
+               
                 newElement->state = 0;
                 strcpy(newElement->name, entite);
                 strcpy(newElement->code, code);
@@ -100,7 +94,7 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
                 newElement->nbrAff=0;
                 newElement->next = NULL;
                 elmC->next = newElement;
-                // printf("Inserted %s at table[%d] (collision)\n", entite, hash);
+
             }
         }
         break;
@@ -109,32 +103,26 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
         {
             if (mot_cle_table[hash] == NULL) {
                 mot_cle* newmot_cle = (mot_cle *)malloc(sizeof(mot_cle));
-                if (newmot_cle == NULL) {
-                    printf("Memory allocation failed.\n");
-                    return;
-                }
+               
                 newmot_cle->state = 1;
                 strcpy(newmot_cle->name, entite);
                 strcpy(newmot_cle->type, code);
                 newmot_cle->next = NULL;
                 mot_cle_table[hash] = newmot_cle;
-                // printf("Inserted %s at mot_cle_table[%d]\n", entite, hash);
+
             } else {
                 mot_cle* currmot_cle = mot_cle_table[hash];
                 while (currmot_cle->next != NULL) {
                     currmot_cle = currmot_cle->next;
                 }
                 mot_cle* newmot_cle = (mot_cle *)malloc(sizeof(mot_cle));
-                if (newmot_cle == NULL) {
-                    printf("Memory allocation failed.\n");
-                    return;
-                }
+
                 newmot_cle->state = 1;
                 strcpy(newmot_cle->name, entite);
                 strcpy(newmot_cle->type, code);
                 newmot_cle->next = NULL;
                 currmot_cle->next = newmot_cle;
-                // printf("Inserted %s at mot_cle_table[%d] (collision)\n", entite, hash);
+
             }
         }
         break;
@@ -143,32 +131,25 @@ void inserer(char entite[], char code[], char type[], char val[], int y) {
         {
             if (sep_table[hash] == NULL) {
                 sep* newsep = (sep *)malloc(sizeof(sep));
-                if (newsep == NULL) {
-                    printf("Memory allocation failed.\n");
-                    return;
-                }
+               
                 newsep->state = 1;
                 strcpy(newsep->name, entite);
                 strcpy(newsep->type, code);
                 newsep->next = NULL;
                 sep_table[hash] = newsep;
-                // printf("Inserted %s at sep_table[%d]\n", entite, hash);
+
             } else {
                 sep* currsep = sep_table[hash];
                 while (currsep->next != NULL) {
                     currsep = currsep->next;
                 }
                 sep* newsep = (sep *)malloc(sizeof(sep));
-                if (newsep == NULL) {
-                    printf("Memory allocation failed.\n");
-                    return;
-                }
+               
                 newsep->state = 1;
                 strcpy(newsep->name, entite);
                 strcpy(newsep->type, code);
                 newsep->next = NULL;
                 currsep->next = newsep;
-                // printf("Inserted %s at sep_table[%d] (collision)\n", entite, hash);
             }
         }
         break;
@@ -300,6 +281,14 @@ void afficher() {
     }
 }
 
+// fonction pour enlever les parantheses
+void removePar (char entite[]) {
+  if (entite[0]=='(') {
+                  entite[0]=' ';
+                  entite[strlen(entite)-1]=' ';
+  }
+}
+
 void insererTYPE(char entite[], char type[])
 {
     int hash = hashage(entite);
@@ -313,10 +302,7 @@ void insererTYPE(char entite[], char type[])
             }    
         }
     }
-    else
-    {
-        printf("Erreur: %s n'existe pas dans la table des symboles\n", entite);
-    }
+
 }
 
 char *GetType(char entite[])
@@ -330,45 +316,11 @@ char *GetType(char entite[])
             }    
         }
     }
-    else
-    {
-        printf("Erreur: %s n'existe pas dans la table des symboles\n", entite);
-    }
     return "";
 }
 
 
-int Declaration(char entite[]){
-    int hash = hashage(entite);
-    if (table[hash] != NULL) {
-        element* elmC = table[hash];
-        while (elmC != NULL) {
-            if (strcmp(elmC->name, entite) == 0) {
-                if (strcmp(elmC->type, " ") != 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return 0;
-                }     
-            }    
-        }
-    }
-    else
-    {
-        return 0;
-    }
-    return 0;
-}
 
-// fonction pour enlever les parantheses
-void removePar (char entite[]) {
-  if (entite[0]=='(') {
-                  entite[0]=' ';
-                  entite[strlen(entite)-1]=' ';
-  }
-}
 
 // la pile c'est pour empiler et depiler les elements f syntaxique
 void initPile()
@@ -450,7 +402,7 @@ int doubleDeclaration(char* name) {
         if (strcmp(elmC->name, name) == 0 && elmC->state == 1) {
             // double declaration
             // printf("Erreur: %s est deja declaree-------------------\n", name);
-            return 1;
+            return 0;
             }    
         }
     
@@ -505,7 +457,7 @@ void tailleFaux(int tailleTab)
 {
     if(tailleTab<=0)
     {
-        printf("erreur semantique la taille d'un tableau doit etre strictement positive \n "); 
+        printf(" << erreur semantique la taille d'un tableau doit etre strictement positive >>\n "); 
     }
 }
 
@@ -514,24 +466,15 @@ void divisionParZero(char* zero)
 {
     if(strcmp(zero,"0")==0)
     {
-       printf("erreur semantique divison par zero");
+       printf("    << erreur semantique divison par zero >>\n");
     }
 }
 
-// int incomptabiliteType(int type1,int type2)
-// {
-//     if(type1!=type2)
-//     {
-//          printf("<< erreur semantique incompatibilite des types >>");
-//     }
-//     return type1;
-// }
 int incomptabiliteType(int type1,int type2)
 {
     if(type1!=type2)
     {
         return 1;
-        printf("<< erreur semantique incompatibilite des types >>");
     }
     return 0;
 }
@@ -566,3 +509,4 @@ int reaffectCst(char* name )
     }
   return 0;
 }
+

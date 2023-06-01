@@ -3,20 +3,12 @@
  #include<stdlib.h>
  #include<string.h>
  #include <stdbool.h>
- #include "quad.h"
 
  int i,indx;
- char *x = "";
- // elem* adr;
+ char *x;
 char *y = "";
-char *T ="";
-int Prog_Ind=0,Pred_Ind=0, QC=0,cpt=1, First=0 ;
-int yyerror(char *);
-Quad* Qdr=NULL;
-char Valeur[254] = { } ;
+char *z = "";
 char* type="";
-char* temp="";
-char* temp2="";
 char* val="";
 char buf[25];
 char* TYPESTRUCT="";
@@ -39,8 +31,9 @@ char *GetType(char entite[]);
 void tailleFaux(int tailleTab);
 void nbrAFF(char* name);
 int reaffectCst(char* name );
-void InsererQuad(Quad** ListQuad,char* Op, char* Op1, char* Op2,char* T,int QC);
-void AffichageQuad(Quad* ListQuad);
+void divisionParZero(char* zero);
+void divisionParZeroF(float zero);
+
 void initPile();
 void empiler(char*);
 char* depiler();
@@ -51,17 +44,16 @@ void afficherPile();
 
 %union {
         char* str;
-        struct { char* type; char* res; }NT;
+        struct { char* type; int Tentier; float Treel; }NT;
 }
 
 %token <str>mc_int <str>mc_float vir pointvir accfer accouv parferm parouv <str>idf mc_if crochet_ouv crochet_fer
-%token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale <str>plus <str>moins <str>etoile <str>divi
+%token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale plus moins etoile divi
 %token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point point
-%token <str>entier <str>reel
-%type <str> TYPE 
+%token <NT>entier <NT>reel
+/* %type <str> TYPE VAR */
 %type <str> D_CST
-%type <NT> EXPR
-
+%type <NT> VAR OPERATION_AR
 // Les prioritées 
 %left          et                
 %left          ou         
@@ -111,22 +103,12 @@ D_TAB : TYPE idf crochet_ouv entier crochet_fer
 {
  empiler(strdup($2)); 
  updateSTATE(strdup($2));
- tailleFaux(atoi($4));
+ tailleFaux($4.Tentier);
  } 
 
 ;
 
-D_CST : mc_const idf egale reel 
-    { 
-        empiler(strdup($2));
-        updateSTATE(strdup($2));
-        insererCODE(strdup($2));
-        insererVAL(strdup($2),strdup(val));
-        val = "";
-        nbrAFF($2);
-    }
-  |
-     mc_const idf egale entier 
+D_CST : mc_const idf egale VAR 
     { 
         empiler(strdup($2));
         updateSTATE(strdup($2));
@@ -150,6 +132,18 @@ STRUCT : mc_struct accouv LISTDEC accfer idf
 // declaration d'une variable de type structure
 // rahi m3a TYPE 
 // utilisation d'une variable struct dans la partie code
+Code_STRUCT : idf point idf
+{  
+  // empiler(strdup($3));
+  if (nonDec(strdup($3))==1) {
+     printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3);
+                       } 
+  if (nonDec(strdup($1))==1) {
+     printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
+                       }                       
+                    }
+;
+
 LISTDEC : TYPE idf pointvir LISTDEC  
  {        
         
@@ -159,9 +153,9 @@ LISTDEC : TYPE idf pointvir LISTDEC
                       insererTYPE(x,type);
                       if (doubleDeclaration(strdup($2))==1) 
                        printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
-                      
+                      else updateSTATE(strdup($2));
                      }
-                      updateSTATE(strdup($2));
+                     
                     type="";
                     x="";
  }
@@ -174,14 +168,49 @@ LISTDEC : TYPE idf pointvir LISTDEC
                       if (doubleDeclaration(strdup($2))==1) 
                         printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
                          
-
+                      else updateSTATE(strdup($2));
                      } 
-                      updateSTATE(strdup($2));
+                   
                     type="";
                     x="";
  }
       
         ;
+
+
+// les variables
+VAR : entier 
+  {  
+  
+
+     $$.type="INTEGER";
+     $$.Tentier=$1.Tentier;
+     sprintf(buf, "%d", $1.Tentier);
+     val=buf;
+     empiler(buf);
+     type="INTEGER";
+     empiler($1.type);
+    //  printf("IM STORING ____________type : %s \n", $$.type);
+    //  printf("IM STORING ____________val : %s \n", buf);
+     }
+
+    | reel 
+  {   
+    
+    $$.type="FLOAT";
+    $$.Treel=$1.Treel;
+    sprintf(buf, "%f", $1.Treel); 
+    val=buf;
+    empiler(buf);
+    type="FLOAT";
+    empiler($1.type);
+    // printf("IM STORING ____________type : %s \n", $$.type);
+    // printf("IM STORING ____________val : %s \n", buf);
+   
+    
+    }
+
+    ;
 
 TYPE : mc_int 
     {type="INTEGER";}
@@ -202,6 +231,13 @@ LISTEIDF: idf vir LISTEIDF
           empiler(strdup($1));}
         ;
 
+// opérateurs arithmétique 
+/* OPA : plus
+    | moins
+    | etoile
+    | divi
+; */
+
 //opérateurs logique
 OPL : et
     | ou
@@ -217,99 +253,23 @@ OPC : sup
 ;
 
  // les opérations arithmétique
-EXPR : EXPR plus EXPR
- {
-
-temp = depiler();
-temp2 = depiler();
-empiler(temp);
-empiler(temp2);
-            sprintf(Valeur,"T%d",cpt); T = strdup(Valeur); 
-						InsererQuad(&Qdr,"+",temp,temp2,T,QC); 
-            $$.res = strdup(T);
-						cpt++; QC++;  
-          
- }
-| EXPR moins EXPR
- {
-
-temp = depiler();
-temp2 = depiler();
-empiler(temp);
-empiler(temp2);
-
-            sprintf(Valeur,"T%d",cpt); T = strdup(Valeur); 
-						InsererQuad(&Qdr,"-",temp,temp2,T,QC); 
-            $$.res = strdup(T);
-						cpt++; QC++;  
-          
- }
-| EXPR etoile EXPR
- {
-
-temp = depiler();
-temp2 = depiler();
-empiler(temp);
-empiler(temp2);
-
-            sprintf(Valeur,"T%d",cpt); T = strdup(Valeur); 
-						InsererQuad(&Qdr,"*",temp,temp2,T,QC); 
-            $$.res = strdup(T);
-						cpt++; QC++;  
-          
- }
-| EXPR divi EXPR
- {
-
-temp = depiler();
-temp2 = depiler();
-empiler(temp);
-empiler(temp2);
-
-            sprintf(Valeur,"T%d",cpt); T = strdup(Valeur); 
-						InsererQuad(&Qdr,"/",temp,temp2,T,QC); 
-            $$.res = strdup(T);
-						cpt++; QC++;  
-          
- }
-|  entier 
-  {  
-     $$.type="INTEGER";
-     $$.res=$1;
-     val = strdup($1);
-     empiler(val);
-     type="INTEGER";
-     empiler(type);
-     }
-
-| reel 
-  {   
-    $$.type="FLOAT";
-    $$.res=$1; 
-    val = strdup($1);
-    empiler(val);
-    type="FLOAT";
-    empiler(type);
-    }
-|  idf point idf
- {  
-   // empiler(strdup($3));
-   if (nonDec(strdup($3))==1) {
-      printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3);
-                       } 
-  if (nonDec(strdup($1))==1) {
-     printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
-                        }                       
-                 }
-| idf 
- { 
-       // empiler(strdup($1));
-       if (nonDec(strdup($1))==1) {
-      printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
-                        } 
-                    }
+OPERATION_AR : VALEUR plus OPERATION_AR 
+| VALEUR moins OPERATION_AR
+| VALEUR etoile OPERATION_AR
+| VALEUR divi OPERATION_AR { sprintf(buf, "%d", $3.Tentier); divisionParZero(buf); }
+|  VALEUR
         ; 
         
+VALEUR :  VAR | IDF | parouv OPERATION_AR parferm 
+       ;
+IDF : Code_STRUCT
+    | idf { 
+      // empiler(strdup($1));
+      if (nonDec(strdup($1))==1) {
+     printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
+                       } 
+                    }
+
 // les opérateurs 
 OPERATEURS : OPL | OPC ;
 
@@ -323,7 +283,7 @@ CONDITION : parouv EXP OPERATEURS EXP parferm
            | parouv negation EXP parferm ;
 
 // les expressions
-EXP : CONDITION | EXPR | parouv EXPR parferm; 
+EXP : CONDITION | OPERATION_AR; 
 
 // les instructions
 INSTRUCTION:  AFFECTATION INSTRUCTION
@@ -331,27 +291,22 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
             | BOUCLE_FOR INSTRUCTION
             | BOUCLE_WHILE INSTRUCTION
             | ;
-IDF : idf 
-| idf point idf;
 
 AFFECTATION : IDF egale EXP pointvir 
 { 
   nbrAFF($2);
   x=depiler();
-
   if (nonDec(strdup(x))==0) 
    {
     // si incompatibilité des type on print erreur sinon on insere la valeur
       if (strcmp(GetType(strdup(x)),type)!=0)
-      printf("<< Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
-      else if (reaffectCst(strdup(x))==0) insererVAL(x,val) ; else printf("<< Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                printf("    << Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+      else if (reaffectCst(strdup(x))==0) insererVAL(x,val) ; else printf("   << Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
  }
   val = "";
   type = "";
   
-}
-;
-
+};
 COND_IF: mc_if EXP accouv INSTRUCTION accfer ELSE;
 
 ELSE: mc_else accouv INSTRUCTION accfer | ;
@@ -374,7 +329,6 @@ int main()
     printf ("\n\n\t\t --------------------------- Debut de la compilation --------------------------- \n\n");
     yyparse();
     afficher();
-	  AffichageQuad(Qdr);
     return 0;
 } 
 int yywrap(){ return 0;};   

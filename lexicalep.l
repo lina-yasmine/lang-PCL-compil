@@ -68,19 +68,19 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 {entier} { 
     if ((atoi(yytext)>-32768)&&(atoi(yytext)<32767)) {
     removePar(yytext);
-	// sprintf(tmp,"%d",atoi(yytext)); 
+	sprintf(tmp,"%d",atoi(yytext)); 
     // rechercher(tmp,"variable","INTEGER",tmp);
     printf("entier reconnu %s \n",yytext);nbrC+=strlen(yytext);
-    yylval.str=yytext; return entier;}
+    yylval.NT.Tentier=atoi(yytext); return entier;}
 	else { printf ("<< Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
         }
 {reel} {
     if ((atof(yytext)>-32768)&&(atof(yytext)<32767)) {
     removePar(yytext);
-	// sprintf(tmp,"%f",atof(yytext));
+	sprintf(tmp,"%f",atof(yytext));
     // rechercher(tmp,"variable","FLOAT",tmp);
     printf("reel reconnu %s \n",yytext);nbrC+=strlen(yytext);
-    yylval.str=yytext; return reel; }
+    yylval.NT.Treel=atof(yytext); return reel; }
     	else { printf ("<< Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
          }
 {comment} {nbrC = 1;}
