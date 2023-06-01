@@ -7,7 +7,8 @@ int top2 = -1;
 int isempty2() {
    if(top2 == -1)
       return 1;
-  return 0;    
+  return 0;   
+   
 }
    
 int isfull2() {

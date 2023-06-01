@@ -352,7 +352,7 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
 AFFECTATION : IDF egale EXP pointvir 
                                        { 
                                          x=depiler();
-                                           // si incompatibilité des type on print erreur sinon on insere la valeur
+                                           //  si incompatibilité des type on print erreur sinon on insere la valeur
                                          if (nonDec(strdup(x))==0) 
                                          {
                                              if (strcmp(GetType(strdup(x)),type)!=0) printf("\n\n    << Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,x);
@@ -366,7 +366,7 @@ AFFECTATION : IDF egale EXP pointvir
                                          
                                        }
 ;
-COND_IF: mc_if EXP accouv INSTRUCTION accfer ELSE;
+COND_IF: mc_if CONDITION accouv INSTRUCTION accfer ELSE;
 
 
 ELSE: mc_else accouv INSTRUCTION accfer | ;
@@ -389,6 +389,18 @@ int main()
     yyparse();
     afficher();
     afficher_qdr(); 
+    sauvegarder_qdr("quadruplets.txt");
+    generate_code();  // gneration code machin
+    propagateExpression(); // propagateExpression
+    eliminateDeadCode(); // eliminateDeadCode
+    eliminateRedundancy(); // eliminateRedundancy
+    simplifyAlgebra();
+    propagateCopy();
+    printf(" |\t--------------------------------------------------------\n |");
+    printf("\n |--------- Quadruplets apres l'optimisation\n");
+    afficher_qdr();
+    sauvegarder_qdr("quadruplets optimse.txt");
+
     return 0;
 } 
 int yywrap(){ return 0;};   

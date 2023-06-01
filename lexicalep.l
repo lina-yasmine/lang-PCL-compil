@@ -69,8 +69,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     if ((atoi(yytext)>-32768)&&(atoi(yytext)<32767)) {
     removePar(yytext);
 	sprintf(tmp,"%d",atoi(yytext)); 
-    // rechercher(tmp,"variable","INTEGER",tmp);
-    printf("  %s ",yytext);nbrC+=strlen(yytext);
+    printf("%s",yytext);nbrC+=strlen(yytext);
     yylval.Tentier=atoi(yytext); return entier;}
 	else { printf ("\n\n << Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
         }
@@ -78,8 +77,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     if ((atof(yytext)>-32768)&&(atof(yytext)<32767)) {
     removePar(yytext);
 	sprintf(tmp,"%f",atof(yytext));
-    // rechercher(tmp,"variable","FLOAT",tmp);
-    printf("  %s ",yytext);nbrC+=strlen(yytext);
+    printf("%s",yytext);nbrC+=strlen(yytext);
     yylval.Treel=atof(yytext); return reel; }
     	else { printf ("\n\n << Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
          }
@@ -153,10 +151,10 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     printf("inf ou egale  "); nbrC += strlen(yytext);return inf_egal;}
 "[" {
     rechercher(yytext,"sep","","",2);
-    printf(" [");nbrC += strlen(yytext); return crochet_ouv;}
+    printf("[");nbrC += strlen(yytext); return crochet_ouv;}
 "]" {
     rechercher(yytext,"sep","","",2);
-    printf("] ");nbrC += strlen(yytext); return crochet_fer;}
+    printf("]");nbrC += strlen(yytext); return crochet_fer;}
 {saut} {nbr++;nbrC = 1;}
 [ \t] {nbrC += strlen(yytext);}
 . {printf("\n\n erreur lexicale a la ligne %d et a la colonne %d entite <<%s>> \n\n",nbr,nbrC,yytext);return err;}

@@ -13,13 +13,12 @@ VAR
 }
 CODE
 {
-    Yas=1;
-    X=3;
-    Bb=10;
-    Aa=X+Yas;
-    Bb=1+9;
-    Cc = 10;
-    Aa = 15;
+  
+    A=(1+7)/(5-(1+7));
+   
+IF (Aa > Bb){ X=E+2.6;
+} ELSE{
+Cc=0; }
 
 }
 } 

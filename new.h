@@ -59,7 +59,7 @@ void initialisation() {
     }
 }
 
-// Step 3: Insert lexical entities into symbol tables
+
 void inserer(char entite[], char code[], char type[], char val[], int y) {
     int hash = hashage(entite);
 
@@ -416,6 +416,7 @@ int doubleDeclaration(char* name) {
         if (strcmp(elmC->name, name) == 0 && elmC->state == 1) {
             // double declaration
             // printf("Erreur: %s est deja declaree-------------------\n", name);
+
             return 0;
             }    
         }

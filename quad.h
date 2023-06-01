@@ -22,12 +22,12 @@ void quadr(char opr[],char op1[],char op2[],char res[]){
 }
 
 
-// Function to check if two quadruplets are identical
+// Fontion pour voir si deux quad sont identiques
 bool isRedundant(qdr q1, qdr q2) {
     return strcmp(q1.oper, q2.oper) == 0 && strcmp(q1.op1, q2.op1) == 0 && strcmp(q1.op2, q2.op2) == 0;
 }
 
-// Function to perform redundant expression elimination
+// Fontion pour eliminer les quad redondants
 void eliminateRedundancy() {
     int i, j;
     for (i = 0; i < qc; i++) {
@@ -153,9 +153,10 @@ void ajour_quad(int num_quad, int colon_quad, char val []){
 
 void afficher_qdr(){
     int i;
-    printf("\n |- (4) LISTING QUADRUPLETS\n");
+    printf("\n |- Affichage des quadruplets\n");
     printf(" |\t--------------------------------------------------------\n |");
     for (i = 0; i < qc; i++){
+        if ( !(strcmp(quad[i].oper, "Empty")==0 && strcmp(quad[i].op1, "Empty")==0 &&strcmp(quad[i].op2, "Empty")==0 && strcmp(quad[i].res, "Empty")==0 ))
         printf("\n |\t %d - ( %s  ,  %s  ,  %s  ,  %s )",i, quad[i].oper, quad[i].op1, quad[i].op2, quad[i].res); 
         printf("\n |\t--------------------------------------------------------\n |");
     }
@@ -169,7 +170,7 @@ void sauvegarder_qdr(const char* filename) {
         perror("Error opening file");
         return;
     }
-    fprintf(fp, "\n |- (4) LISTING QUADRUPLETS\n");
+    fprintf(fp, "\n |- Affichage des quadruplets\n");
     fprintf(fp, " |\t--------------------------------------------------------\n |");
     for (i = 0; i < qc; i++){
         fprintf(fp, "\n |\t %d - ( %s  ,  %s  ,  %s  ,  %s )",i, quad[i].oper, quad[i].op1, quad[i].op2, quad[i].res); 
@@ -182,7 +183,7 @@ void sauvegarder_qdr(const char* filename) {
 
 void generate_code() {
     int i;
-    printf("\n |- (5) Generated Code\n");
+    printf("\n |- Generation du code \n");
     printf( " |\t--------------------------------------------------------\n |");
     for (i = 0; i < qc; i++) {
         printf("%d:\t", i);
