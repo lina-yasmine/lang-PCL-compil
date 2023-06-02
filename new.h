@@ -319,6 +319,20 @@ char *GetType(char entite[])
     return "";
 }
 
+char *get_val(char entite[])
+{
+    int hash = hashage(entite);
+    if (table[hash] != NULL) {
+        element* elmC = table[hash];
+        while (elmC != NULL) {
+            if (strcmp(elmC->name, entite) == 0) {
+                return elmC->val;
+            }    
+        }
+    }
+    return "";
+}
+
 
 
 
@@ -464,7 +478,7 @@ void tailleFaux(int tailleTab)
 
 void divisionParZero(char* zero)
 {
-    if(strcmp(zero,"0")==0)
+    if(strcmp(zero,"0")==0 || strcmp(zero,"0.0")==0 )
     {
        printf("    << erreur semantique divison par zero >>\n");
     }

@@ -3,6 +3,9 @@
  #include<stdlib.h>
  #include<string.h>
  #include <stdbool.h>
+ #include "var_stack.h"
+ #include "state_stack.h"
+ #include "quad.h"
 
  int i,indx;
  char *x;
@@ -33,6 +36,7 @@ void nbrAFF(char* name);
 int reaffectCst(char* name );
 void divisionParZero(char* zero);
 void divisionParZeroF(float zero);
+char *get_val(char entite[]);
 
 void initPile();
 void empiler(char*);
@@ -40,20 +44,54 @@ char* depiler();
 int pileVide();
 void afficherPile();
 
+void quadr(char opr[],char op1[],char op2[],char res[]);
+void ajour_quad(int num_quad, int colon_quad, char val []);
+void afficher_qdr();
+void sauvegarder_qdr();
+void copy_propagation();
+void generate_code();
+void optimiser_qdr();
+void propagateExpression();
+void propagateCopy();
+void eliminateRedundancy();
+void simplifyAlgebra();
+void eliminateDeadCode();
+ int Fin_if = 0, deb_else = 0, Fin, BorneSup, counter = 1, counter2 = 1;
+    int qc = 0;
+    char tmp[20], tmp2[20], tmp3[20], tmp4[20], tabName[20];
+    int tmp_int;
+    int state = 0;
+    int isNewline = 0;
+
+    char Types[100][20];
+    int variables_counter = 0, variables_counter2 = 0;
+    char sauvType[25], sauvType2[25];
+    float savedVal;
+
+    int isempty();
+    int isfull();
+    char* peek();
+    char* pop();
+    char push(char *data); 
+
 %}
 
 %union {
         char* str;
-        struct { char* type; int Tentier; float Treel; }NT;
+        int Tentier;
+        float Treel;
+      
 }
 
 %token <str>mc_int <str>mc_float vir pointvir accfer accouv parferm parouv <str>idf mc_if crochet_ouv crochet_fer
 %token err mc_for mc_while mc_var mc_code <str>mc_struct mc_const egale plus moins etoile divi
 %token sup_egal inf_egal inegalite sup inf double_egale negation et ou mc_else deux_point point
-%token <NT>entier <NT>reel
+%token <Tentier>entier <Treel>reel
 /* %type <str> TYPE VAR */
 %type <str> D_CST
-%type <NT> VAR OPERATION_AR
+%type <Treel> VAR IDF
+%type<Treel> EXP1 EXP2 VALEUR
+
 // Les prioritées 
 %left          et                
 %left          ou         
@@ -103,7 +141,7 @@ D_TAB : TYPE idf crochet_ouv entier crochet_fer
 {
  empiler(strdup($2)); 
  updateSTATE(strdup($2));
- tailleFaux($4.Tentier);
+ tailleFaux($4);
  } 
 
 ;
@@ -182,14 +220,13 @@ LISTDEC : TYPE idf pointvir LISTDEC
 VAR : entier 
   {  
   
-
-     $$.type="INTEGER";
-     $$.Tentier=$1.Tentier;
-     sprintf(buf, "%d", $1.Tentier);
+     $$=$1;
+     sprintf(buf, "%d", $1);
      val=buf;
+     push(buf);
      empiler(buf);
      type="INTEGER";
-     empiler($1.type);
+     empiler(type);
     //  printf("IM STORING ____________type : %s \n", $$.type);
     //  printf("IM STORING ____________val : %s \n", buf);
      }
@@ -197,13 +234,13 @@ VAR : entier
     | reel 
   {   
     
-    $$.type="FLOAT";
-    $$.Treel=$1.Treel;
-    sprintf(buf, "%f", $1.Treel); 
+    $$=$1;
+    sprintf(buf, "%f", $1); 
     val=buf;
     empiler(buf);
+    push(buf);
     type="FLOAT";
-    empiler($1.type);
+    empiler(type);
     // printf("IM STORING ____________type : %s \n", $$.type);
     // printf("IM STORING ____________val : %s \n", buf);
    
@@ -253,21 +290,93 @@ OPC : sup
 ;
 
  // les opérations arithmétique
-OPERATION_AR : VALEUR plus OPERATION_AR 
+/* OPERATION_AR : VALEUR plus OPERATION_AR 
 | VALEUR moins OPERATION_AR
 | VALEUR etoile OPERATION_AR
 | VALEUR divi OPERATION_AR { sprintf(buf, "%d", $3.Tentier); divisionParZero(buf); }
 |  VALEUR
-        ; 
-        
-VALEUR :  VAR | IDF | parouv OPERATION_AR parferm 
+        ;  */
+
+EXP1: EXP1 plus EXP2 {
+        printf(" ************---------------------------------************\n");
+        $$ = $1 + $3;
+        printf(" ************ %f ************\n", $$);
+        printf(" ************---------------------------------************\n");
+        strcpy(tmp2, pop());
+        strcpy(tmp, pop());
+        sprintf(tmp4, "temp_var%d", counter);
+        counter++;
+        quadr("+", tmp, tmp2, tmp4);
+        push(tmp4); 
+        printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
+
+
+    }
+    | EXP1 moins EXP2 {
+        $$ = $1 - $3;
+        strcpy(tmp2, pop());
+        strcpy(tmp, pop());
+        sprintf(tmp4, "temp_var%d", counter);
+        counter++;
+        quadr("-", tmp, tmp2, tmp4);
+        push(tmp4); 
+        printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
+
+
+    }
+    | EXP2
+;
+EXP2: EXP2 etoile VALEUR {
+        $$ = $1 * $3;
+        strcpy(tmp2, pop());
+        strcpy(tmp, pop());
+        sprintf(tmp4, "temp_var%d", counter);
+        counter++;
+        quadr("*", tmp, tmp2, tmp4);
+        push(tmp4); 
+        printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
+    }
+    | EXP2 divi VALEUR {
+       if ($3==0){ sprintf(buf, "%d", $3); divisionParZero(buf); }
+       else if ($3==0.0){ sprintf(buf, "%f", $3); divisionParZero(buf); }
+        else {
+            $$ = $1 / $3;
+            strcpy(tmp2, pop());
+            strcpy(tmp, pop());
+            sprintf(tmp4, "temp_var%d", counter);
+            counter++;
+            quadr("/", tmp, tmp2, tmp4);
+            push(tmp4);
+        printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
+            }
+    }
+    | VALEUR    
+;
+
+
+
+
+VALEUR :  VAR | IDF | parouv EXP1 parferm 
        ;
 IDF : Code_STRUCT
     | idf { 
+
       // empiler(strdup($1));
       if (nonDec(strdup($1))==1) {
      printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1);
                        } 
+      else   { 
+        if (strcmp(GetType($1),"FLOAT")==0)
+        { $$ = atof(get_val($1));
+          push($1);
+        }
+        else if (strcmp(GetType($1),"INTEGER")==0)
+        {
+         $$ = atoi(get_val($1));
+        push($1);
+        }
+            }
+
                     }
 
 // les opérateurs 
@@ -283,7 +392,7 @@ CONDITION : parouv EXP OPERATEURS EXP parferm
            | parouv negation EXP parferm ;
 
 // les expressions
-EXP : CONDITION | OPERATION_AR; 
+EXP : CONDITION | EXP1; 
 
 // les instructions
 INSTRUCTION:  AFFECTATION INSTRUCTION
@@ -292,7 +401,7 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
             | BOUCLE_WHILE INSTRUCTION
             | ;
 
-AFFECTATION : IDF egale EXP pointvir 
+AFFECTATION : IDF egale EXP1 pointvir 
 { 
   nbrAFF($2);
   x=depiler();
@@ -303,6 +412,9 @@ AFFECTATION : IDF egale EXP pointvir
                 printf("    << Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
       else if (reaffectCst(strdup(x))==0) insererVAL(x,val) ; else printf("   << Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
  }
+  sprintf(tmp3, "%d", $3);
+  sprintf(tmp2 , "%s", $1);
+  quadr("=", tmp3, "Empty", tmp2);
   val = "";
   type = "";
   
@@ -329,6 +441,7 @@ int main()
     printf ("\n\n\t\t --------------------------- Debut de la compilation --------------------------- \n\n");
     yyparse();
     afficher();
+    afficher_qdr(); 
     return 0;
 } 
 int yywrap(){ return 0;};   
