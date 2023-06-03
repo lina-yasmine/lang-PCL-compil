@@ -63,7 +63,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
                   printf(" %s ",yytext);nbrC += strlen(yytext);
                   yylval.str=strdup(yytext);return idf;
                }
- else { printf ("\n << Erreur lexicale ( IDF trop long ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext); nbrC += strlen(yytext);} 
+ else { printf ("\n\n << Erreur lexicale ( IDF trop long ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,yytext); nbrC += strlen(yytext);} 
     }
 {entier} { 
     if ((atoi(yytext)>-32768)&&(atoi(yytext)<32767)) {
@@ -72,16 +72,16 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     // rechercher(tmp,"variable","INTEGER",tmp);
     printf("  %s ",yytext);nbrC+=strlen(yytext);
     yylval.Tentier=atoi(yytext); return entier;}
-	else { printf ("\n << Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
+	else { printf ("\n\n << Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
         }
 {reel} {
     if ((atof(yytext)>-32768)&&(atof(yytext)<32767)) {
     removePar(yytext);
 	sprintf(tmp,"%f",atof(yytext));
     // rechercher(tmp,"variable","FLOAT",tmp);
-    printf("  %s \n",yytext);nbrC+=strlen(yytext);
+    printf("  %s ",yytext);nbrC+=strlen(yytext);
     yylval.Treel=atof(yytext); return reel; }
-    	else { printf ("\n << Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
+    	else { printf ("\n\n << Erreur lexicale ( Depassement de valeur ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,yytext);	nbrC=nbrC+strlen(yytext); }
          }
 {comment} {nbrC = 1;}
 "{" {
@@ -99,7 +99,7 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     printf(" ) ");nbrC += strlen(yytext); return parferm;}
 ";" {
     rechercher(yytext,"sep","","",2);
-    printf(" ; ");nbrC += strlen(yytext); return pointvir;}
+    printf(" ; \n");nbrC += strlen(yytext); return pointvir;}
 ":" {
     rechercher(yytext,"sep","","",2);
     printf(" : ");nbrC += strlen(yytext); return deux_point;}
@@ -159,6 +159,6 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
     printf("] ");nbrC += strlen(yytext); return crochet_fer;}
 {saut} {nbr++;nbrC = 1;}
 [ \t] {nbrC += strlen(yytext);}
-. {printf("\n erreur lexicale a la ligne %d et a la colonne %d entite <<%s>> \n",nbr,nbrC,yytext);return err;}
+. {printf("\n\n erreur lexicale a la ligne %d et a la colonne %d entite <<%s>> \n\n",nbr,nbrC,yytext);return err;}
 %%
 

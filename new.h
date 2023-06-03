@@ -471,7 +471,7 @@ void tailleFaux(int tailleTab)
 {
     if(tailleTab<=0)
     {
-        printf(" << erreur semantique la taille d'un tableau doit etre strictement positive >>\n "); 
+        printf("\n\n << erreur semantique la taille d'un tableau doit etre strictement positive >>\n\n "); 
     }
 }
 
@@ -480,7 +480,7 @@ void divisionParZero(char* zero)
 {
     if(strcmp(zero,"0")==0 || strcmp(zero,"0.0")==0 )
     {
-       printf("    << erreur semantique divison par zero >>\n");
+       printf("\n\n    << erreur semantique divison par zero >> \n\n");
     }
 }
 
@@ -516,7 +516,7 @@ int reaffectCst(char* name )
             if (current->nbrAff>1)
             {
                 return 1;
-                printf("<< erreur semantique reaffectation d'une constante >> \n");
+                printf("\n\n<< erreur semantique reaffectation d'une constante >> \n\n");
             }
         }
         current = current->next;
