@@ -171,8 +171,8 @@ Code_STRUCT : idf point idf
                                      z =strdup($3);
 
                                // empiler(strdup($3));
-                               if (nonDec(strdup($3))==1) { printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3); } 
-                               if (nonDec(strdup($1))==1) { printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1); }                       
+                               if (nonDec(strdup($3))==1) { printf ("\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3); } 
+                               if (nonDec(strdup($1))==1) { printf ("\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1); }                       
                              }
 ;
 
@@ -181,7 +181,7 @@ LISTDEC : TYPE idf pointvir LISTDEC  {
                                                          {
                                                            x=depiler();
                                                            insererTYPE(x,type);
-                                                           if (doubleDeclaration(strdup($2))==1) printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                                                           if (doubleDeclaration(strdup($2))==1) printf ("\n << Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
                                                            else updateSTATE(strdup($2));
                                                           }
                                                           
@@ -193,7 +193,7 @@ LISTDEC : TYPE idf pointvir LISTDEC  {
                                                          {
                                                           x=depiler(); 
                                                           insererTYPE(x,type);
-                                                          if (doubleDeclaration(strdup($2))==1) printf ("<< Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                                                          if (doubleDeclaration(strdup($2))==1) printf ("\n << Erreur semantique ( Double déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
                                                           else updateSTATE(strdup($2));
                                                          } 
                                                        
@@ -261,27 +261,23 @@ OPC : sup
 
 EXP1: EXP1 plus EXP2 {
         $$ = $1 + $3;
-        // printf(" ************ %f ************\n", $$);
         strcpy(tmp2, pop());
         strcpy(tmp, pop());
         sprintf(tmp4, "temp_var%d", counter);
         counter++;
         quadr("+", tmp, tmp2, tmp4);
         push(tmp4); 
-        // printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
 
 
     }
     | EXP1 moins EXP2 {
         $$ = $1 - $3;
-        // printf(" ************ %f ************\n", $$);
         strcpy(tmp2, pop());
         strcpy(tmp, pop());
         sprintf(tmp4, "temp_var%d", counter);
         counter++;
         quadr("-", tmp, tmp2, tmp4);
         push(tmp4); 
-        // printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
 
 
     }
@@ -289,14 +285,12 @@ EXP1: EXP1 plus EXP2 {
 ;
 EXP2: EXP2 etoile VALEUR {
         $$ = $1 * $3;
-        // printf(" ************ %f ************\n", $$);
         strcpy(tmp2, pop());
         strcpy(tmp, pop());
         sprintf(tmp4, "temp_var%d", counter);
         counter++;
         quadr("*", tmp, tmp2, tmp4);
         push(tmp4); 
-        // printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
     }
     | EXP2 divi VALEUR {
        if ($3==0){ sprintf(buf, "%f", $3); divisionParZero(buf); }
@@ -309,7 +303,6 @@ EXP2: EXP2 etoile VALEUR {
             counter++;
             quadr("/", tmp, tmp2, tmp4);
             push(tmp4);
-        // printf(" ************%s %s %s ************\n", tmp, tmp2, tmp4);
             }
     }
     | VALEUR    
@@ -323,7 +316,7 @@ IDF : Code_STRUCT
                                      z =strdup($1);
 
            // empiler(strdup($1));
-            if (nonDec(strdup($1))==1) { printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1); } 
+            if (nonDec(strdup($1))==1) { printf ("\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$1); } 
              else { 
                     if (strcmp(GetType($1),"FLOAT")==0)
                      { 
@@ -365,7 +358,7 @@ AFFECTATION : IDF egale EXP pointvir
                                          {
                                              if (strcmp(GetType(strdup(x)),type)!=0) printf("    << Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
                                              else if (reaffectCst(strdup(x))==0) insererVAL(x,val) ;
-                                                  else printf("   << Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
+                                                  else printf("\n   << Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,x);
                                          }
                                          sprintf(tmp3, "%f", $3);
                                          sprintf(tmp2 , "%f", $1);
@@ -383,8 +376,8 @@ ELSE: mc_else accouv INSTRUCTION accfer | ;
 
 BOUCLE_FOR : mc_for parouv idf deux_point entier deux_point  entier deux_point idf parferm accouv INSTRUCTION accfer
             { 
-              if (nonDec(strdup($3))==1) { printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3); }
-              if (nonDec(strdup($9))==1) { printf ("<< Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$9); }
+              if (nonDec(strdup($3))==1) { printf ("\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$3); }
+              if (nonDec(strdup($9))==1) { printf ("\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n",nbr,nbrC,$9); }
             }	
 ;
 BOUCLE_WHILE : mc_while CONDITION accouv INSTRUCTION accfer ; 
@@ -403,5 +396,5 @@ int main()
 int yywrap(){ return 0;};   
 
 int yyerror (char *msg ) { 
-        printf ("Erreur syntaxique, ligne %d, nbrConne %d \n",nbr,nbrC); 
+        printf ("\n Erreur syntaxique, ligne %d, nbrConne %d \n",nbr,nbrC); 
         return 1; }
