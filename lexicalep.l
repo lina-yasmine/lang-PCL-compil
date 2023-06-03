@@ -86,11 +86,11 @@ reel 0|(0|{chiffrenonNUL}{chiffre}*)"\."{chiffre}+|"("[-+](0|{chiffrenonNUL}{chi
 {comment} {nbrC = 1;}
 "{" {
     rechercher(yytext,"sep","","",2);
-    printf(" { ");nbrC += strlen(yytext); return accouv;
+    printf(" { \n");nbrC += strlen(yytext); return accouv;
     }
 "}" {
     rechercher(yytext,"sep","","",2);
-    printf(" } ");nbrC += strlen(yytext); return accfer;}
+    printf(" } \n");nbrC += strlen(yytext); return accfer;}
 "(" {
     rechercher(yytext,"sep","","",2);
     printf(" ( ");nbrC += strlen(yytext); return parouv;}

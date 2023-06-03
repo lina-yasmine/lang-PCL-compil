@@ -360,8 +360,7 @@ AFFECTATION : IDF egale EXP pointvir
                                                   else printf("\n\n   << Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,x);
                                          }
                                          sprintf(tmp3, "%f", $3);
-                                         sprintf(tmp2 , "%f", $1);
-                                         quadr("=", tmp3, "Empty", tmp2);
+                                         quadr("=", tmp3, "Empty", x);
                                          val = "";
                                          type = "";
                                          
