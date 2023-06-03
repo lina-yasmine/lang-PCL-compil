@@ -15,9 +15,11 @@ CODE
 {
     Yas=1;
     X=3;
-    Aa=X+YAS;
+    Bb=10;
+    Aa=X+Yas;
     Bb=1+9;
-
+    Cc = 10;
+    Aa = 15;
 
 }
 } 
