@@ -2,23 +2,30 @@ Aa1b2c3d
 {
 VAR
 {
-    INTEGER Yas ;
-    INTEGER Aa , Bb ;  
+    INTEGER A , Bb ;  
     FLOAT Bb ;
     CONST Cc = 8 ;
     INTEGER Ee[(-5)] ; 
-    INTEGER Yas ;
     INTEGER X;
+     FLOAT Test ;
 
 }
 CODE
 {
-  
-    A=(1+7)/(5-(1+7));
-   
-IF (Aa > Bb){ X=E+2.6;
-} ELSE{
-Cc=0; }
+Bb=1*0;
+A=(1+7)/5-1+7;
+Test = Bb;
 
+IF (A > 1){ A=A+2;
+} ELSE{
+X=2; }
+X=1+4/2;
+WHILE (A < X) { 
+   FOR (A : 0: 2 :X) {
+     IF (A > 1){
+      X=3;
+      }
+    }
+}
 }
 } 

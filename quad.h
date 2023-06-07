@@ -99,7 +99,7 @@ void simplifyAlgebra() {
                 strcpy(quad[i].op1, "0");
                 strcpy(quad[i].op2, "Empty");
             }
-            // Add more simplification rules as needed
+       
             
         }
     }
@@ -156,7 +156,6 @@ void afficher_qdr(){
     printf("\n |- Affichage des quadruplets\n");
     printf(" |\t--------------------------------------------------------\n |");
     for (i = 0; i < qc; i++){
-        if ( !(strcmp(quad[i].oper, "Empty")==0 && strcmp(quad[i].op1, "Empty")==0 &&strcmp(quad[i].op2, "Empty")==0 && strcmp(quad[i].res, "Empty")==0 ))
         printf("\n |\t %d - ( %s  ,  %s  ,  %s  ,  %s )",i, quad[i].oper, quad[i].op1, quad[i].op2, quad[i].res); 
         printf("\n |\t--------------------------------------------------------\n |");
     }

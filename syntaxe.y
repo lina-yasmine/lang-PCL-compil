@@ -34,8 +34,8 @@ char *GetType(char entite[]);
 void tailleFaux(int tailleTab);
 void nbrAFF(char* name);
 int reaffectCst(char* name );
-void divisionParZero(char* zero);
-void divisionParZeroF(float zero);
+int divisionParZero(char* zero);
+
 char *get_val(char entite[]);
 
 void initPile();
@@ -90,7 +90,9 @@ void eliminateDeadCode();
 /* %type <str> TYPE VAR */
 %type <str> D_CST
 %type <Treel> VAR IDF
-%type<Treel> EXP1 EXP2 VALEUR EXP
+%type<Treel> EXP1 EXP2 VALEUR 
+%type<Tentier> EXP_B COND COND1 COND2 COND3;
+
 
 // Les prioritées 
 %left          et                
@@ -168,8 +170,9 @@ STRUCT : mc_struct accouv LISTDEC accfer idf {
 // utilisation d'une variable struct dans la partie code
 Code_STRUCT : idf point idf
                              { 
-                                     z =strdup($3);
-                              //nbrAFF($3);
+                               z =strdup($3);
+                               push(strdup($3));
+                               nbrAFF($3);
                                // empiler(strdup($3));
                                if (nonDec(strdup($3))==1) { printf ("\n\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,$3); } 
                                if (nonDec(strdup($1))==1) { printf ("\n\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,$1); }                       
@@ -245,19 +248,7 @@ LISTEIDF: idf vir LISTEIDF   {
           empiler(strdup($1));}
         ;
 
-//opérateurs logique
-OPL : et
-    | ou
-    | negation
-;
-//opérateurs de comparaision
-OPC : sup
-    | sup_egal
-    | inegalite
-    | double_egale
-    | inf_egal
-    | inf
-;
+
 
 EXP1: EXP1 plus EXP2 {
         $$ = $1 + $3;
@@ -293,8 +284,8 @@ EXP2: EXP2 etoile VALEUR {
         push(tmp4); 
     }
     | EXP2 divi VALEUR {
-       if ($3==0){ sprintf(buf, "%f", $3); divisionParZero(buf); }
-       else if ($3==0.0){ sprintf(buf, "%f", $3); divisionParZero(buf); }
+       if ($3==0){ printf("\n\n    << erreur semantique divison par zero >> \n\n"); }
+       else if ($3==0.0){ printf("\n\n    << erreur semantique divison par zero >> \n\n"); }
         else {
             $$ = $1 / $3;
             strcpy(tmp2, pop());
@@ -316,6 +307,7 @@ IDF : Code_STRUCT
                                      z =strdup($1);
            // nbrAFF($1);
            // empiler(strdup($1));
+           push(strdup($1));
             if (nonDec(strdup($1))==1) { printf ("\n\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,$1); } 
              else { 
                     if (strcmp(GetType($1),"FLOAT")==0)
@@ -329,18 +321,205 @@ IDF : Code_STRUCT
                          push($1);
                        }
                    }
-
+        //    printf("valeur de $$ : %f ----- ",$$);
            }
 
-// les opérateurs 
-OPERATEURS : OPL | OPC ;
 
  // les opérations de comparaision et logique
-CONDITION :  parouv EXP OPERATEURS EXP parferm 
-           | parouv negation EXP parferm ;
+CONDITION : parouv COND parferm ;
 
-// les expressions
-EXP : CONDITION | EXP1; 
+
+EXP_B : EXP1 sup EXP1 {
+        pop(); pop();
+        if ($1 > $3){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        push(tmp);
+        sprintf(tmp4, "%f", $1); 
+        sprintf(tmp3, "%f", $3); 
+        quadr(">", tmp4, tmp3, tmp);
+     }
+     | EXP1 inf EXP1 {
+        pop(); pop();
+        if ($1 < $3){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+        sprintf(tmp4, "%f", $1); 
+        sprintf(tmp3, "%f", $3); 
+        quadr("<", tmp4, tmp3, tmp);
+     }
+     | EXP1 sup_egal EXP1 {
+        pop(); pop();
+        if ($1 >= $3){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+        sprintf(tmp4, "%f", $1); 
+        sprintf(tmp3, "%f", $3); 
+        quadr(">=", tmp4, tmp3, tmp);
+     }
+     | EXP1 inf_egal EXP1 {
+        pop(); pop();
+        if ($1 <= $3){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+        sprintf(tmp4, "%f", $1); 
+        sprintf(tmp3, "%f", $3); 
+        quadr("<=", tmp4, tmp3, tmp);
+     }
+     | EXP1 double_egale EXP1 {
+        pop(); pop();
+        if ($1 == $3){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+        sprintf(tmp4, "%f", $1); 
+        sprintf(tmp3, "%f", $3); 
+        quadr("==", tmp4, tmp3, tmp);
+     }
+     | EXP1 inegalite EXP1 {
+        pop(); pop();
+        if ($1 != $3){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+        sprintf(tmp4, "%f", $1); 
+        sprintf(tmp3, "%f", $3); 
+        quadr("!=", tmp4, tmp3, tmp);
+     }
+     | entier {
+        if ($1 != 0){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+     }
+     | reel {
+        if ($1 != 0){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        // push(tmp);
+     }
+     | idf {
+         if (!nonDec($1)){
+            if (get_val($1) != 0){
+                $$ = 1;
+                strcpy(tmp, "true");
+            }
+            else{
+                $$ = 0;
+                strcpy(tmp, "false");
+            }
+            // push(tmp);
+         }
+         else {
+             printf("Semantic Error, line %d, column %d, entite '%s' Not Declared\n", nbr, nbrC, $1);
+         }
+        //  if (nonDec(strdup($1))==1) { printf ("\n\n << Erreur semantique ( non  déclaration ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,$1); } 
+        //      else { 
+        //             if (strcmp(GetType($1),"FLOAT")==0)
+        //              { 
+        //               $$ = atof(get_val($1));
+        //               push($1);
+        //              }
+        //               else if (strcmp(GetType($1),"INTEGER")==0)
+        //                {
+        //                  $$ = atoi(get_val($1));
+        //                  push($1);
+        //                }
+        //            }
+     }
+   
+;
+
+COND: COND ou COND1 {
+        pop(); pop();
+        if (($1 == 1) || ($3 == 1)){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        push(tmp);
+    }
+    | COND1
+;
+COND1: COND1 et COND2 {
+        pop(); pop();
+        if (($1 == 1) && ($3 == 1)){
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        else{
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        push(tmp);
+     }
+     | COND2
+;
+
+COND2: negation COND3 {
+        pop();
+        if ($2 == 1){
+            $$ = 0;
+            strcpy(tmp, "false");
+        }
+        else{
+            $$ = 1;
+            strcpy(tmp, "true");
+        }
+        push(tmp);
+     }
+     | COND3     
+;
+
+COND3: EXP_B { strcpy(sauvType, "NULL"); }
+;
+
 
 // les instructions
 INSTRUCTION:  AFFECTATION INSTRUCTION
@@ -349,18 +528,24 @@ INSTRUCTION:  AFFECTATION INSTRUCTION
             | BOUCLE_WHILE INSTRUCTION
             | ;
 
-AFFECTATION : IDF egale EXP pointvir 
+AFFECTATION : IDF egale EXP1 pointvir 
                                        { 
+                                         nbrAFF($2);
                                          x=depiler();
                                            //  si incompatibilité des type on print erreur sinon on insere la valeur
                                          if (nonDec(strdup(x))==0) 
                                          {
                                              if (strcmp(GetType(strdup(x)),type)!=0) printf("\n\n    << Erreur semantique ( incompatibilité de type ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,x);
-                                             else if (reaffectCst(strdup(x))==0) insererVAL(x,val) ;
+                                             else if (reaffectCst(strdup(x))==0) { insererVAL(x,val) ;}
                                                   else printf("\n\n   << Erreur semantique ( reaffectation d'une constante ), ligne %d, colonne %d : %s >>\n\n",nbr,nbrC,x);
                                          }
                                          sprintf(tmp3, "%f", $3);
-                                         quadr("=", tmp3, "Empty", x);
+                                         val=pop();
+                                         type=pop(); 
+                                        //  printf("\n\n type : %s \n\n",type);
+                                         if (reaffectCst(strdup(type))==0) insererVAL(type,tmp3);
+                                         quadr("=", tmp3, "Empty", type);
+                                         push(val);
                                          val = "";
                                          type = "";
                                          

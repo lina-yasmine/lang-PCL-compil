@@ -477,12 +477,14 @@ void tailleFaux(int tailleTab)
 }
 
 
-void divisionParZero(char* zero)
+int divisionParZero(char* zero)
 {
     if(strcmp(zero,"0")==0 || strcmp(zero,"0.0")==0 )
     {
+        return 1;
        printf("\n\n    << erreur semantique divison par zero >> \n\n");
     }
+    return 0;
 }
 
 int incomptabiliteType(int type1,int type2)
